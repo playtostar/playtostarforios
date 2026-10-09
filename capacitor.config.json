@@ -1,0 +1,17 @@
+{
+  "appId": "com.playtostar.app",
+  "appName": "实况起点",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "scrollEnabled": false
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "overlaysWebView": true
+    }
+  }
+}
