@@ -6,7 +6,7 @@ workflows:
     max_build_duration: 90
     instance_type: mac_mini_m2          # Apple 芯片 M2，个人免费额度可用
     environment:
-      node: 20
+      node: 22
       ios_signing:
         distribution_type: app_store   # 上架 / TestFlight 分发
         bundle_identifier: com.playtostar.app
