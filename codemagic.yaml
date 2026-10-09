@@ -12,7 +12,7 @@ workflows:
 
     # 引用在 Codemagic UI 里连接的 App Store Connect / Developer Portal 集成
     integrations:
-      app_store_connect: codemagic      # ← 若你的 Key 不叫这个名字，改成实际名称
+      app_store_connect: CODEMAGICPLAYTOSTAR      # ← 若你的 Key 不叫这个名字，改成实际名称
 
     environment:
       node: 22            # @capacitor/cli 8.x 要求 Node >=22；且需 typescript 读取 capacitor.config.ts
