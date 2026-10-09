@@ -1,0 +1,24 @@
+{
+  "name": "playtostar-mobile",
+  "version": "0.3.0",
+  "private": true,
+  "description": "实况起点数据中心 Android（Capacitor 封装）",
+  "scripts": {
+    "sync": "cap sync android",
+    "open": "cap open android",
+    "add:android": "cap add android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/share": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2"
+  }
+}

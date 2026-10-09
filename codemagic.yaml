@@ -1,0 +1,60 @@
+# Codemagic 流水线 — PlayToStar（实况起点）iOS
+# 本文件须位于 Codemagic 项目根目录。
+# 首次使用前，只需做两件事（详见同包《iOS构建说明_FIRST.txt》）：
+#   1) Codemagic → Team settings → Developer Portal → Manage keys，上传 App Store Connect API Key(.p8)
+#   2) 把下面 integrations.app_store_connect 的值改成你给该 Key 起的名字（默认写的是 codemagic）
+
+workflows:
+  ios-release:
+    name: iOS Release
+    max_build_duration: 90
+    instance_type: mac_mini_m2          # Apple 芯片 M2，个人免费额度可用
+
+    # 引用在 Codemagic UI 里连接的 App Store Connect / Developer Portal 集成
+    integrations:
+      app_store_connect: codemagic      # ← 若你的 Key 不叫这个名字，改成实际名称
+
+    environment:
+      node: 20
+      ios_signing:
+        distribution_type: app_store   # 上架 / TestFlight 分发
+        bundle_identifier: com.playtostar.app
+
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+
+      - name: Sync web assets (www -> iOS)
+        script: npx cap sync ios
+
+      - name: Apply code signing settings
+        script: xcode-project use-profiles
+
+      # 用 Codemagic 每次构建自动递增的 BUILD_NUMBER 作为 CFBundleVersion，
+      # 保证每次上传构建号唯一（无需手动改、无需 Apple ID 反查）。
+      - name: Set build number
+        script: |
+          cd "$CM_BUILD_DIR/ios/App"
+          agvtool new-version -all "${BUILD_NUMBER:-1}"
+
+      - name: Build IPA
+        script: |
+          cd "$CM_BUILD_DIR/ios/App"
+          xcode-project build-ipa \
+            --project "$CM_BUILD_DIR/ios/App/App.xcodeproj" \
+            --scheme "App"
+
+    artifacts:
+      - "**/*.ipa"
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        # 第一次先只上传、不自动提交外部测试合规；等 Apple 处理后在 TestFlight
+        # 把自己加为“内部测试”即可。需要外部测试时再改为 true 并指定 beta_groups。
+        submit_to_testflight: false
+        # submit_to_testflight: true
+        # beta_groups:
+        #   - External Testers

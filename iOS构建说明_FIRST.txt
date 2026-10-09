@@ -1,0 +1,84 @@
+========================================================
+ PlayToStar（实况起点）iOS · Codemagic 首次构建说明
+========================================================
+
+【这是什么】
+ 一个自包含的 Capacitor iOS 工程，上传/连接到 Codemagic 后，
+ 云端 Mac 自动完成：同步网页 → 签名 → 打包 IPA → 上传 App Store Connect。
+ 你全程在 Windows 浏览器操作，不需要 Mac、不需要装 Xcode。
+
+--------------------------------------------------------
+ 第 0 步：确认这些已完成（你已做）
+--------------------------------------------------------
+ [ ] Apple 个人开发者账号可用
+ [ ] App ID = com.playtostar.app 已注册，并勾选 Sign In with Apple
+ [ ] App Store Connect 已“新建 App”
+ [ ] 已生成 App Store Connect API Key，拿到：
+       Issuer ID、Key ID、并下载好 .p8（私钥只能下载一次）
+
+--------------------------------------------------------
+ 第 1 步：把 API Key 加到 Codemagic（只做一次）
+--------------------------------------------------------
+ 1. 登录 https://codemagic.io
+ 2. 左下角/顶部进入 Team settings（团队设置）
+ 3. Developer Portal（开发者门户）→ Manage keys（管理密钥）→ Add key
+ 4. 填一个名字（建议就叫 codemagic），输入 Issuer ID、Key ID，
+    上传 .p8 文件 → Save
+
+ 注意：codemagic.yaml 里写的是  integrations.app_store_connect: codemagic
+ 如果你给 Key 起了别的名字，把 codemagic.yaml 里的 codemagic 改成实际名字。
+
+--------------------------------------------------------
+ 第 2 步：把工程交给 Codemagic（二选一）
+--------------------------------------------------------
+ 方式 A（推荐，长期）：把本工程放到一个 Git 仓库（GitHub/GitLab 等），
+   Codemagic → Applications → Add application → 连接该仓库 → Finish。
+   codemagic.yaml 已在工程根目录。
+
+ 方式 B（不想用 Git）：Codemagic 支持其他接入方式，或把本目录内容
+   作为仓库根上传；保证 codemagic.yaml 在“项目根目录”。
+
+--------------------------------------------------------
+ 第 3 步：开始构建
+--------------------------------------------------------
+ 1. 打开该应用 → 选择分支 → Check for configuration file（识别 codemagic.yaml）
+ 2. 选中 “iOS Release” 工作流 → Start new build
+ 3. 实时看日志，约 15–30 分钟
+    - npm ci：安装依赖
+    - cap sync ios：把 www 网页同步进 iOS
+    - use-profiles：应用签名
+    - build-ipa：打包
+    - 上传 App Store Connect
+
+--------------------------------------------------------
+ 第 4 步：TestFlight 安装测试
+--------------------------------------------------------
+ 1. 构建成功后，等 Apple 处理（通常 10–30 分钟，首次可能更久，会有邮件）
+ 2. App Store Connect → 你的 App → TestFlight
+ 3. 把你自己加为“内部测试”（App Store Connect 用户无需额外审核）
+ 4. iPhone 上装 TestFlight App，安装“实况起点”，真机回归
+
+--------------------------------------------------------
+ 常见问题
+--------------------------------------------------------
+ · 报签名/证书错误：
+     确认 API Key 已正确上传，且 codemagic.yaml 的 key 名与 UI 一致；
+     Bundle ID 后台与 yaml 都是 com.playtostar.app。
+ · 报“构建号已存在 / duplicate build”：
+     流水线已用 Codemagic 的 BUILD_NUMBER 自动递增，正常不会出现；
+     若手动改过，保证每次上传 build 号不重复。
+ · 提示找不到 .xcworkspace：
+     Capacitor 8 用 SPM，本就没有 workspace，流水线用的是
+     --project App.xcodeproj，属正常，无需 pod install。
+ · 找不到入口/页面是旧的：
+     确认改的是本工程，构建用的是最新 www。
+
+--------------------------------------------------------
+ 重要：这一版的用途边界
+--------------------------------------------------------
+ 本包用于【跑通云端构建 + 上传 TestFlight 内部测试】。
+ 目前还“没有”接入 Sign in with Apple 的功能代码（下一步做），
+ 所以请先不要直接提交 App Store 正式审核——缺 Apple 登录会被拒。
+ 等下一步把 Apple 登录、账号注销、UGC 合规补齐后，再正式提审。
+
+========================================================
