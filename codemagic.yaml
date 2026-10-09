@@ -11,9 +11,7 @@ workflows:
     instance_type: mac_mini_m2          # Apple 芯片 M2，个人免费额度可用
 
     # 引用在 Codemagic UI 里连接的 App Store Connect / Developer Portal 集成
-    integrations:
-      app_store_connect: codemagic      # ← 若你的 Key 不叫这个名字，改成实际名称
-
+   
     environment:
       node: 20
       ios_signing:
