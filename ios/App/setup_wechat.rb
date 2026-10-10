@@ -9,7 +9,7 @@ require 'xcodeproj'
 PROJ     = 'App.xcodeproj'
 FW_NAME  = 'WechatOpenSDK-NoPay.xcframework'
 SYS_FW   = %w[Security WebKit CoreGraphics].freeze
-LD_FLAGS = %w[-ObjC -all_load].freeze
+LD_FLAGS = %w[-ObjC].freeze
 
 project = Xcodeproj::Project.open(PROJ)
 target  = project.targets.find { |t| t.name == 'App' }

@@ -357,7 +357,6 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
-					"-all_load",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.playtostar.app;
@@ -385,7 +384,6 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
-					"-all_load",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.playtostar.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";

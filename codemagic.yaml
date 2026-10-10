@@ -19,6 +19,7 @@ workflows:
       ios_signing:
         distribution_type: app_store   # 上架 / TestFlight 分发
         bundle_identifier: com.playtostar.app
+        certs_repository: CODEMAGICPLAYTOSTAR   # Apple Developer Portal 集成名（签名证书/描述文件）
 
     scripts:
       - name: Install npm dependencies
