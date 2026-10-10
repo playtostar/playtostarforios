@@ -42,14 +42,14 @@ workflows:
       # CFBundleVersion（构建号）每次上传都必须高于 ASC 上已有的最高值，否则发布报
       # “attribute ... already been used / bundle version must be higher”。
       # Codemagic 自己的 BUILD_NUMBER 目前只有十几、不能直接用；这里：
-      #   默认 30；以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=29、30…（逐次 +1），无需重新打包。
+      #   默认 31；以后同一个版本每次重传，在 Start new build 的变量里设
+      #   IOS_BUILD_NO=30、31…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-30}
+          BN=${IOS_BUILD_NO:-31}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（ASC 已上传最高为 27）"
+          echo "本次 CFBundleVersion = $BN（ASC 已上传最高为 30）"
 
       - name: Build IPA
         script: |
