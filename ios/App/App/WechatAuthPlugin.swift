@@ -37,7 +37,7 @@ public class WechatAuthPlugin: CAPPlugin {
         let req = SendAuthReq()
         req.scope = "snsapi_userinfo"
         req.state = "playtostar_auth"
-        WXApi.sendReq(req) { [weak self] success in
+        WXApi.send(req) { [weak self] success in
             if !success {
                 call.reject("拉起微信失败")
                 self?.savedCall = nil
@@ -58,7 +58,7 @@ public class WechatAuthPlugin: CAPPlugin {
 
     @objc private func handleOpenUrl(_ notification: Notification) {
         guard let url = url(from: notification) else { return }
-        WXApi.handleOpenURL(url, delegate: self)
+        _ = WXApi.handleOpen(url, delegate: self)
     }
 
     @objc private func handleUniversalLink(_ notification: Notification) {
