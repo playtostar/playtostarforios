@@ -39,13 +39,17 @@ workflows:
       - name: Apply code signing settings
         script: xcode-project use-profiles
 
-      # 用 Codemagic 每次构建自动递增的 BUILD_NUMBER 作为 CFBundleVersion，
-      # 保证每次上传构建号唯一（无需手动改、无需 Apple ID 反查）。
+      # CFBundleVersion（构建号）每次上传都必须高于 ASC 上已有的最高值，否则发布报
+      # “attribute ... already been used / bundle version must be higher”。
+      # Codemagic 自己的 BUILD_NUMBER 目前只有十几、不能直接用；这里：
+      #   默认 27；以后同一个版本每次重传，在 Start new build 的变量里设
+      #   IOS_BUILD_NO=28、29…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=$(( BUILD_NUMBER >= 26 ? BUILD_NUMBER : 26 ))
+          BN=${IOS_BUILD_NO:-27}
           agvtool new-version -all "$BN"
+          echo "本次 CFBundleVersion = $BN（ASC 已上传最高为 26）"
 
       - name: Build IPA
         script: |
