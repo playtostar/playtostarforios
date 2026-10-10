@@ -19,7 +19,10 @@ workflows:
       ios_signing:
         distribution_type: app_store   # 上架 / TestFlight 分发
         bundle_identifier: com.playtostar.app
-        certs_repository: CODEMAGICPLAYTOSTAR   # Apple Developer Portal 集成名（签名证书/描述文件）
+        # 签名只需上面两个字段：Codemagic 会自动匹配已上传、且类型与 Bundle ID 相符的
+        # 证书和描述文件。Apple Developer Portal 集成（CODEMAGICPLAYTOSTAR）在网页
+        # UI 里关联即可，【不能写进 yaml】——ios_signing 下没有 certs_repository 字段，
+        # 写了会报 “extra fields not permitted”，导致整个配置校验失败、无法启动构建。
 
     scripts:
       - name: Install npm dependencies
