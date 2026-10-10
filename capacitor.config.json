@@ -6,7 +6,7 @@
     "allowMixedContent": false
   },
   "ios": {
-    "scrollEnabled": false
+    "scrollEnabled": true
   },
   "plugins": {
     "StatusBar": {

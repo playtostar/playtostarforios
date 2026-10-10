@@ -9,8 +9,8 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
   },
   ios: {
-    // 禁用 WKWebView 整页橡皮筋滚动（页面内部容器各自滚动），与安卓体验一致
-    scrollEnabled: false,
+    // 允许 WKWebView 整页滚动，保证 iOS 长页面可上下滑动
+    scrollEnabled: true,
   },
   plugins: {
     // 深色背景 → 状态栏文字/图标用浅色（白色）；内容延伸到状态栏下方，

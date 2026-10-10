@@ -27,6 +27,8 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>weixin</string>
+		<string>weixinULAPI</string>
+		<string>weixinURLParamsAPI</string>
 	</array>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>用于将球员卡、阵容与分享图保存到您的相册。</string>
@@ -40,6 +42,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>playtostar</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>weixin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wxd0ef5d487ac33750</string>
 			</array>
 		</dict>
 	</array>

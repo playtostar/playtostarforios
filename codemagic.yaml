@@ -35,7 +35,7 @@ workflows:
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=$(( BUILD_NUMBER >= 25 ? BUILD_NUMBER : 25 ))
+          BN=$(( BUILD_NUMBER >= 26 ? BUILD_NUMBER : 26 ))
           agvtool new-version -all "$BN"
 
       - name: Build IPA
