@@ -45,9 +45,23 @@ workflows:
       - name: Build IPA
         script: |
           cd "$CM_BUILD_DIR/ios/App"
+          set +e
           xcode-project build-ipa \
             --project "$CM_BUILD_DIR/ios/App/App.xcodeproj" \
             --scheme "App"
+          RC=$?
+          # 失败时自动从 Codemagic CLI 留存的 xcodebuild 日志里提取真正的错误行，
+          # 直接打印到本步骤日志末尾，免去手动展开/下载 artifacts 查找。
+          if [ $RC -ne 0 ]; then
+            echo "========== 自动提取：真正的错误行 =========="
+            shopt -s nullglob
+            for f in /tmp/xcodebuild_logs/*.log; do
+              echo "----- $f -----"
+              grep -nE "error:|fatal error:|ld: |duplicate symbol|library not found|framework not found|CodeSign|errSec|no profiles|doesn't match|The following build commands failed|Unable to|requires a provisioning|Undefined symbol" "$f" | head -80
+            done
+            echo "========== 若上面为空，请展开本步骤完整日志搜索 error: =========="
+            exit $RC
+          fi
 
     artifacts:
       - "**/*.ipa"

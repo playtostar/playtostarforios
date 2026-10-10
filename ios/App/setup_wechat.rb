@@ -30,13 +30,13 @@ unless target.frameworks_build_phase.files_references.include?(fw_ref)
   target.frameworks_build_phase.add_file_reference(fw_ref, true)
 end
 
-# ---------- 3) Embed & Sign（Copy Files → Frameworks，spec=10）----------
-embed = target.copy_files_build_phases.find { |p| p.symbol_dst_subfolder_spec == :frameworks } ||
-        target.new_copy_files_build_phase('Embed Frameworks')
-embed.symbol_dst_subfolder_spec = :frameworks
-unless embed.files_references.include?(fw_ref)
-  bf = embed.add_file_reference(fw_ref, true)
-  bf.settings = { 'ATTRIBUTES' => ['Code Sign On Copy'] }
+# ---------- 3) 静态库：只链接、不 Embed ----------
+# 微信该 framework 是【静态库】(file 显示 current ar archive)，链接后代码已并入
+# 主二进制，不能 Embed & Sign——Xcode 归档时嵌入静态库会失败(code 65)。
+# 这里清理任何历史遗留的 Embed 条目，保证幂等收敛到“只链接”。
+target.copy_files_build_phases.each do |phase|
+  next unless phase.symbol_dst_subfolder_spec == :frameworks
+  phase.files.select { |bf| bf.file_ref == fw_ref }.each { |bf| phase.remove_build_file(bf) }
 end
 
 # ---------- 4) 系统框架（随当前 SDK 解析，sourceTree=SDKROOT）----------
@@ -63,7 +63,7 @@ end
 
 project.save
 puts '============ 微信 OpenSDK 集成完成 ============'
-puts "  1) 已链接并 Embed & Sign: #{FW_NAME}"
+puts "  1) 已链接（静态库，只链接、不 Embed）: #{FW_NAME}"
 puts "  2) 系统框架: #{SYS_FW.join(', ')}"
 puts "  3) Other Linker Flags: #{LD_FLAGS.join(' ')}"
 puts '  （重复运行本脚本结果一致，不会重复添加）'

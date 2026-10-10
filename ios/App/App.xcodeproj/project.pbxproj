@@ -10,7 +10,6 @@
 		122EC3B602A26B434937507B /* WechatOpenSDK-NoPay.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 574BDCFF91DF7F0204EF5B3B /* WechatOpenSDK-NoPay.xcframework */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		31DA9BAC9F83275CEDE1C2FC /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44B23B907FA5A9E857A0F191 /* Security.framework */; };
-		3A00503B93425D4AF8C3C5CB /* WechatOpenSDK-NoPay.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 574BDCFF91DF7F0204EF5B3B /* WechatOpenSDK-NoPay.xcframework */; settings = {ATTRIBUTES = ("Code Sign On Copy", ); }; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -31,7 +30,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3A00503B93425D4AF8C3C5CB /* WechatOpenSDK-NoPay.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;

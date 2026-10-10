@@ -37,7 +37,7 @@ public class WechatAuthPlugin: CAPPlugin {
         let req = SendAuthReq()
         req.scope = "snsapi_userinfo"
         req.state = "playtostar_auth"
-        WXApi.send(req) { [weak self] success in
+        WXApi.sendReq(req) { [weak self] success in
             if !success {
                 call.reject("拉起微信失败")
                 self?.savedCall = nil
@@ -58,7 +58,7 @@ public class WechatAuthPlugin: CAPPlugin {
 
     @objc private func handleOpenUrl(_ notification: Notification) {
         guard let url = url(from: notification) else { return }
-        WXApi.handleOpen(url, delegate: self)
+        WXApi.handleOpenURL(url, delegate: self)
     }
 
     @objc private func handleUniversalLink(_ notification: Notification) {
@@ -79,7 +79,7 @@ extension WechatAuthPlugin: WXApiDelegate {
         if auth.errCode == 0, let code = auth.code, !code.isEmpty {
             savedCall?.resolve(["code": code])
         } else {
-            let msg = (auth.errStr?.isEmpty == false) ? auth.errStr! : "微信授权失败或已取消"
+            let msg = auth.errStr.isEmpty ? "微信授权失败或已取消" : auth.errStr
             savedCall?.reject(msg)
         }
         savedCall = nil
