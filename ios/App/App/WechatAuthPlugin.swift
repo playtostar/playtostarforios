@@ -8,7 +8,17 @@ import WechatOpenSDK
  * 拿到 code 后由前端 POST 后端 /api/auth/wechat-mobile 换取业务 token；AppSecret 只在后端。
  */
 @objc(WechatAuthPlugin)
-public class WechatAuthPlugin: CAPPlugin {
+public class WechatAuthPlugin: CAPPlugin, CAPBridgedPlugin {
+    // CAPBridgedPlugin 必需：jsName 必须与 JS 端 registerPlugin("WechatAuth") 完全一致，
+    // 否则 Capacitor 注册循环（CapacitorBridge.registerPlugins）虽能在 packageClassList
+    // 找到本类，却因 `as? CapacitorPlugin`（CAPPlugin & CAPBridgedPlugin）失败而跳过，
+    // 运行时报 “"WechatAuth" plugin is not implemented on ios”。
+    public let identifier = "WechatAuthPlugin"
+    public let jsName = "WechatAuth"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "login", returnType: CAPPluginReturnPromise)
+    ]
+
     private static let appId = "wxd0ef5d487ac33750"
     private static let universalLink = "https://playtostar.com/app/"
 
