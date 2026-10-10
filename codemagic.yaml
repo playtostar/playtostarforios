@@ -31,6 +31,11 @@ workflows:
       - name: Sync web assets (www -> iOS)
         script: npx cap sync ios
 
+      # cap sync 只把 npm 插件写进 packageClassList；本地微信插件需手动补注册，
+      # 否则运行时报 “"WechatAuth" plugin is not implemented on ios”。
+      - name: Register local native plugins (WechatAuth)
+        script: python3 "$CM_BUILD_DIR/register_local_plugins.py"
+
       - name: Apply code signing settings
         script: xcode-project use-profiles
 
