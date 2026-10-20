@@ -12,7 +12,7 @@ workflows:
 
     # 引用在 Codemagic UI 里连接的 App Store Connect / Developer Portal 集成
     integrations:
-      app_store_connect: CODEMAGICPLAYTOSTAR       # ← 若你的 Key 不叫这个名字，改成实际名称
+      app_store_connect: CODEMAGICPLAYTOSTAR      # ← 若你的 Key 不叫这个名字，改成实际名称
 
     environment:
       node: 22            # @capacitor/cli 8.x 要求 Node >=22；且需 typescript 读取 capacitor.config.ts
@@ -49,7 +49,7 @@ workflows:
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-39}
+          BN=${IOS_BUILD_NO:-40}
           agvtool new-version -all "$BN"
           echo "本次 CFBundleVersion = $BN（默认 39，与安卓 versionCode 对齐；ASC 历史最高 31）"
 

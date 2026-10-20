@@ -1,17 +1,19 @@
-PlayToStar（实况起点）· iOS 工程交付说明（v2 · 静态文件开关版）
+PlayToStar（实况起点）· iOS 工程交付说明（v3 · c40 提审包）
 ==================================================================
-交付包：playtostar_ios_project_1.6663_c39_20261020_1855.zip
-版本：1.6663（MARKETING_VERSION）/ 39（CFBundleVersion，与安卓 versionCode 对齐）
-前端 bundle：index-Chu1JLh3.js（普通版，内置远程安全模式开关）
-构建时间：2026-10-20 18:5x（Windows 本机 · D:/AIfiles/buddy/ptsappl）
+交付包：playtostar_ios_project_1.6663_c40_20261020_2015.zip
+zip sha256：（打包后回填）
+版本：1.6663（MARKETING_VERSION）/ 40（CFBundleVersion，与安卓 versionCode 对齐）
+前端 bundle：index-B7aOEF-l.js（普通版，内置远程安全模式开关）
+bundle sha256：0642fa4654bf6990d0cc994f34662100f1c334e755f5285fb1b5d01df33d2469
+构建时间：2026-10-20 20:1x（Windows 本机 · D:/AIfiles/buddy/ptsappl）
 
 【这是什么】
 Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
 解压后把下列内容复制进 D:\github\playtostar\playtostarforios（仓库根，覆盖旧文件）：
 
-  ios/                       整个目录（版本号已改为 1.6663/39）
+  ios/                       整个目录（版本号已改为 1.6663/40）
   www/                       最新前端——必须更新，cap sync 的数据源
-  codemagic.yaml             构建号默认值已改为 39
+  codemagic.yaml             构建号默认值已改为 40
   package.json
   package-lock.json
   capacitor.config.json
@@ -19,19 +21,29 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
   register_local_plugins.py  微信 iOS 插件注册（Codemagic 每次构建都会跑）
   README_iOS上架完整指南.md（参考）
   iOS构建说明_FIRST.txt（参考）
-  iOS工程交付说明_1.6663_c39_20261020_1855.txt（本文件）
+  iOS工程交付说明_1.6663_c40_20261020_2015.txt（本文件）
 
 然后 commit + push 到 GitHub，Codemagic 自动开始构建（签名/证书/API Key 都齐，直接 building）。
 构建完成后用户在 App Store Connect / TestFlight 操作（截图、提审）。
 
 【Codemagic 自动做（无需本机 Mac/Xcode）】
 npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugins.py
-→ agvtool 设 CFBundleVersion（默认 39）→ build-ipa → 上传 App Store Connect
+→ agvtool 设 CFBundleVersion（默认 40）→ build-ipa → 上传 App Store Connect
 
 注意：包内不含 ios/App/App/public（生成物，每次 cap sync 自动重建，无需手动维护）。
 
-【安全模式（App Store 4.1(a) 整改）· 本版核心变化】
-本包是【普通版】前端 +【服务器静态文件远程开关】，不再使用审核专用内置参数。
+【c40 相对 c39（TestFlight 已验证版）的变化】
+1. 热讯 V观点修复（用户报障：iOS/安卓双端热讯页/论坛页看不到 V观点 标签）：
+   - 解除 NewsListPage tab 门锁与 ForumListPage 板块/渲染门锁（原仅副页 + 管理员可见），
+     V观点 tab/板块全端恒显，纯数据驱动（生产 kind=vip 已核实有多条置顶数据）
+2. 品牌视觉更换（无真人肖像，App Store 4.1(a) 友好）：
+   - iOS App 图标：新主视觉（1671×941 霓虹抽象图）水平居中方框截取缩 1024×1024，
+     不透明/无圆角/满幅（AppIcon-512@2x.png）
+   - App 内 banner（关于弹窗主视觉/球员详情页）：同源垂直居中截带 1700×280
+   - 安卓侧同步更换（legacy 五档 + 同 bundle 内 banner）
+
+【安全模式（App Store 4.1(a) 整改）· 沿用远程静态文件开关】
+本包仍是【普通版】前端 +【服务器静态文件远程开关】，不使用审核专用内置参数。
 
 工作原理（三层，优先级从高到低）：
   1. 构建参数 VITE_SAFE_MODE=1 —— 本包未启用；
@@ -42,6 +54,7 @@ npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugin
 
 安全模式开启时，iOS 端：球员/教练肖像、卡面、资讯/V观点封面、banner 一律走
 首字占位；数据/榜单/搜索/社区/交互完全正常。关闭时全部恢复真实素材。
+（新图标/新 banner 为无风险素材，但 banner 仍走门控，与整体策略一致。）
 开关切换对用户无感、不发版、不动后端，仅改服务器上一个静态文件。
 
 【提审前 · 开启安全模式（必做，先在宝塔操作）】
@@ -71,10 +84,11 @@ npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugin
 
 【提审前检查清单】
 - [ ] 宝塔 pts-safe-mode.json = {"safeMode": true} 且 curl 验证通过（见上）
-- [ ] App Store Connect 已创建 1.6663 (39) 新版本
+- [ ] App Store Connect 已创建 1.6663 (40) 新版本
 - [ ] 元数据已按《AppStore提审文案包_20261020.md》粘贴（名称/副标题/关键词/描述/审核备注栏）
 - [ ] 截图已重做（UI 向、无肖像、无官方画面；可用 TestFlight 包实拍占位形态）
-- [ ] App 图标已换原创图形（当前梅西+亚马尔真人插画必须换）
-- [ ] TestFlight 真机回归：微信登录、Apple 登录、页面滚动、iPad 顶部不遮挡、左缘返回
+- [x] App 图标已换原创图形（新主视觉截取，无真人——旧梅西+亚马尔版已废弃）
+- [ ] TestFlight 真机回归：热讯页 V观点 tab 可见且可切换、微信登录、Apple 登录、
+      页面滚动、iPad 顶部不遮挡、左缘返回
 - [ ] 确认微信开放平台已加 iPhone 平台信息（账号侧操作）
 - [ ] 提审后把回复话术贴进 Solution Center
