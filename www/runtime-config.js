@@ -7,4 +7,6 @@ window.RUNTIME_CONFIG = {
   WECHAT_WEB_APPID: 'wxd4625536619db733',
   // 微信小程序 AppID（小程序端在其工程内单独配置）
   WECHAT_MINI_APPID: '',
+  // 网页 Sign in with Apple 的 Services ID（Apple Developer 后台注册；留空则网页不显示 Apple 登录按钮）
+  APPLE_WEB_CLIENT_ID: 'com.playtostar.web',
 };
