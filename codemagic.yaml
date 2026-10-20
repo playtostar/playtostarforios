@@ -2,7 +2,7 @@
 # 本文件须位于 Codemagic 项目根目录。
 # 首次使用前，只需做两件事（详见同包《iOS构建说明_FIRST.txt》）：
 #   1) Codemagic → Team settings → Developer Portal → Manage keys，上传 App Store Connect API Key(.p8)
-#   2) 把下面 integrations.app_store_connect 的值改成你给该 Key 起的名字（默认写的是 codemagic）
+#   2) integrations.app_store_connect 已填实际 Key 名：CODEMAGICPLAYTOSTAR（2026-10-20 用户确认）
 
 workflows:
   ios-release:
@@ -12,7 +12,7 @@ workflows:
 
     # 引用在 Codemagic UI 里连接的 App Store Connect / Developer Portal 集成
     integrations:
-      app_store_connect: CODEMAGICPLAYTOSTAR      # ← 若你的 Key 不叫这个名字，改成实际名称
+      app_store_connect: CODEMAGICPLAYTOSTAR      # ← Key 名（2026-10-20 用户确认，勿改）
 
     environment:
       node: 22            # @capacitor/cli 8.x 要求 Node >=22；且需 typescript 读取 capacitor.config.ts
@@ -42,16 +42,17 @@ workflows:
       # CFBundleVersion（构建号）每次上传都必须高于 ASC 上已有的最高值，否则发布报
       # “attribute ... already been used / bundle version must be higher”。
       # Codemagic 自己的 BUILD_NUMBER 目前只有十几、不能直接用；这里：
-      #   默认 39（2026-10-20 起与安卓 versionCode 对齐：1.6663 = 39）；
-      #   ASC 历史最高为 31（被拒的 1.66.4），39 起全部未占用，无冲突。
+      #   默认 41（2026-10-20 起：ASC 历史最高为 40——与用户历史 codemagic build
+      #   记录冲突，40 已被占，故从 41 起。iOS 构建号自此与安卓 versionCode
+      #   分叉：安卓仍是 40，两者不再强制对齐）。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=40、41…（逐次 +1），无需重新打包。
+      #   IOS_BUILD_NO=42、43…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-40}
+          BN=${IOS_BUILD_NO:-41}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 39，与安卓 versionCode 对齐；ASC 历史最高 31）"
+          echo "本次 CFBundleVersion = $BN（默认 41；ASC 历史最高 40，iOS 与安卓 versionCode 自此分叉）"
 
       - name: Build IPA
         script: |
