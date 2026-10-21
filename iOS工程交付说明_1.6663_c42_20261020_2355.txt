@@ -1,21 +1,21 @@
-PlayToStar（实况起点）· iOS 工程交付说明（v6 · c41 提审包 · 构建号修正版）
+PlayToStar（实况起点）· iOS 工程交付说明（v8 · c42 提审包 · 品牌占位封面版）
 ==================================================================
-交付包：playtostar_ios_project_1.6663_c41_20261020_2255.zip
+交付包：playtostar_ios_project_1.6663_c42_20261020_2355.zip
 zip sha256：（打包后回填）
-版本：1.6663（MARKETING_VERSION）/ 41（CFBundleVersion）
-      ※ iOS 构建号 41 与安卓 versionCode 40 分叉：ASC 历史最高 40 已被用户
-        历史 codemagic build 记录占用，iOS 侧从 41 起；安卓侧无此约束保持 40
-前端 bundle：index-Btq5wWAV.js（普通版，内置远程安全模式开关）——与 c40 完全同一构建产物
-bundle sha256：f70ca9c3d3452db99ede9e53057a14830daf381bef4ae4fe5dce5e2261871f76（与安卓 dist 同源一致）
-构建时间：2026-10-20 22:56（Windows 本机 · D:/AIfiles/buddy/ptsappl）
+版本：1.6663（MARKETING_VERSION）/ 42（CFBundleVersion）
+      ※ 构建号沿革：40 与用户历史 codemagic build 记录冲突（ASC 已占用）→ 41 已
+        实际上传 ASC → 本包起默认 42。与安卓 versionCode 40 分叉，属正常。
+前端 bundle：index-BAImCEzY.js（普通版，内置远程安全模式开关）
+bundle sha256：（打包后回填）
+构建时间：2026-10-20 23:56（Windows 本机 · D:/AIfiles/buddy/ptsappl）
 
 【这是什么】
 Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
 解压后把下列内容复制进 D:\github\playtostar\playtostarforios（仓库根，覆盖旧文件）：
 
-  ios/                       整个目录（版本号已改为 1.6663/41）
+  ios/                       整个目录（版本号已改为 1.6663/42）
   www/                       最新前端——必须更新，cap sync 的数据源
-  codemagic.yaml             构建号默认值已改为 41；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  codemagic.yaml             构建号默认值已改为 42；ASC 集成名 = CODEMAGICPLAYTOSTAR
   package.json
   package-lock.json
   capacitor.config.json
@@ -23,39 +23,35 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
   register_local_plugins.py  微信 iOS 插件注册（Codemagic 每次构建都会跑）
   README_iOS上架完整指南.md（参考）
   iOS构建说明_FIRST.txt（参考）
-  iOS工程交付说明_1.6663_c41_20261020_2255.txt（本文件）
+  iOS工程交付说明_1.6663_c42_20261020_2355.txt（本文件）
 
 然后 commit + push 到 GitHub，Codemagic 自动开始构建（签名/证书/API Key 都齐，直接 building）。
 构建完成后用户在 App Store Connect / TestFlight 操作（截图、提审）。
 
 【Codemagic 自动做（无需本机 Mac/Xcode）】
 npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugins.py
-→ agvtool 设 CFBundleVersion（默认 41）→ build-ipa → 上传 App Store Connect
+→ agvtool 设 CFBundleVersion（默认 42）→ build-ipa → 上传 App Store Connect
 
 注意：包内不含 ios/App/App/public（生成物，每次 cap sync 自动重建，无需手动维护）。
 
-【c41 相对 c40：仅两处工程配置修正，前端零改动】
-前端 bundle 与 c40 完全一致（index-Btq5wWAV.js，分享图背景修复已在 c40 内），
-视觉/功能无需重新回归，本包只解决两件事：
-1. CFBundleVersion 40 → 41：
-   根因：40 与用户历史 codemagic build 记录冲突，若仍用 40 上传，
-   ASC 会报 "bundle version must be higher" 拒绝构建产物。
-   修复：project.pbxproj 两处（Debug/Release）CURRENT_PROJECT_VERSION 改 41；
-   codemagic.yaml 默认 BN=${IOS_BUILD_NO:-41}。MARKETING_VERSION 保持 1.6663。
-   注意：iOS 构建号自此与安卓 versionCode（40）分叉，属正常，二者无强制对齐要求。
-2. integrations.app_store_connect: codemagic → CODEMAGICPLAYTOSTAR：
-   改为 Codemagic UI 里实际上传的 ASC API Key 名称（用户 2026-10-20 确认），
-   避免 yaml 引用不存在的集成名导致配置校验失败。
-   （该 Key 同时是 Developer Portal 集成，证书/描述文件自动匹配已在 yaml 注释中说明。）
+【v8 相对 v7（c41_2338）：占位封面改品牌图 + 构建号 42】
+1. 安全模式占位封面：灰色 Newspaper/Youtube 图标 → 自有品牌图 hero（BrandCover 组件，
+   1671×941 霓虹抽象图，无真人肖像/无官方画面，object-cover 适配 3:4/16:9 卡片）。
+   用户反馈灰色占位「太丑/突兀」；品牌图同为合规形态（都不含真实封面），但视觉上是
+   刻意的品牌设计而非加载失败。覆盖：首页「最新热讯」横滑/网格/V观点 行、热讯/V观点
+   列表页（NewsCard）、球员/卡包详情页 RelatedVideos、封面加载失败兜底。
+2. 构建号 41 → 42：41 已上传 ASC，同版本重传必须递增；MARKETING_VERSION 保持 1.6663。
 
-【c41 包含的 c40 全部变化（前端层，bundle 未变故不重复罗列细节，详见 c40 说明）】
+【c42 包含的既有变化】
 1. 热讯 V观点修复（tab 门锁解除，全端恒显，纯数据驱动）
 2. 品牌视觉更换（App 图标/App 内 banner，无真人肖像，4.1(a) 友好；安卓侧同步）
-3. 首页 hero 主视觉横幅本地化（public/brand/hero.png 新主视觉原尺寸直存，梅西 COS 远程图退役）
-4. 四张分享图（阵容/资讯/球员/Tier 榜）canvas 背景底图本地化为 hero 多候选路径，
-   消除梅西肖像随分享外流风险；至此源码内品牌类图片零 COS 远程依赖
+3. 首页 hero 主视觉横幅本地化（梅西 COS 远程图退役）
+4. 四张分享图 canvas 背景底图本地化为 hero 多候选路径（梅西肖像随分享外流风险消除）
+5. 首页资讯/V观点封面 + RelatedVideos 封面 safeMode 门控补缺（门控收进 NewsThumbImage
+   组件 choke point）
+6. 本轮：安全模式占位封面统一为品牌图
 
-【安全模式（App Store 4.1(a) 整改）· 沿用远程静态文件开关】
+【安全模式（App Store 4.1(a) 整改）· 远程静态文件开关】
 本包仍是【普通版】前端 +【服务器静态文件远程开关】，不使用审核专用内置参数。
 
 工作原理（三层，优先级从高到低）：
@@ -65,24 +61,27 @@ npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugin
      —— 仅 iOS 原生壳读取；安卓 APP 与网页端完全不看此开关，永久正常；
   3. 默认 false。
 
-安全模式开启时，iOS 端：球员/教练肖像、卡面、资讯/V观点封面、hero/banner 一律走
-首字占位；数据/榜单/搜索/社区/交互完全正常。关闭时全部恢复真实素材。
-（新图标/新 banner/新 hero 均为无风险素材，但 hero/banner 仍走门控，与整体策略一致。）
-开关切换对用户无感、不发版、不动后端，仅改服务器上一个静态文件。
+安全模式开启时，iOS 端：球员/教练肖像、卡面、资讯/V观点封面（含首页各行、列表页、
+相关视频）、hero/banner 一律不显示真实图——封面位置统一呈现品牌图占位；
+数据/榜单/搜索/社区/交互完全正常。关闭时全部恢复真实素材。
+开关切换对用户无感、不发版、不动后端，仅改服务器上一个文件。
 
 【提审前 · 开启安全模式（必做，先在宝塔操作）】
 1. 宝塔 → 网站 playtostar.com → 文件管理 → 进入 download 目录
    （与 version.json 同目录；CORS 已确认 Access-Control-Allow-Origin: *）
 2. 新建/覆盖文件 pts-safe-mode.json，内容（无 BOM、无多余空格）：
    {"safeMode": true}
-   （本交付目录下已附现成文件 pts-safe-mode_true.json / pts-safe-mode_false.json，
-     下载后改名为 pts-safe-mode.json 上传即可，内容逐字节如上）
+   （现成件见 delivery/2026-10-20/pts-safe-mode_true.json / pts-safe-mode_false.json，
+     下载后改名为 pts-safe-mode.json 上传即可；23:2x 已确认线上为 true）
 3. 保存后验证（任一台能上网的机器执行）：
    curl -s "https://playtostar.com/download/pts-safe-mode.json?t=$(date +%s)"
    预期返回：{"safeMode": true}
-4. TestFlight 装包真机验证：球员/卡包详情页为无图占位形态 = 开关生效；
-   顺带确认首页顶部 hero 为新霓虹抽象图（无梅西）；在球员/资讯/Tier/阵容页
-   点「分享」生成图片，确认分享图背景也是新抽象图（无梅西）
+4. TestFlight 装【本包】真机验证（重点，旧包首页会漏/占位是灰底）：
+   - 球员/卡包详情页为无图占位形态；
+   - 首页「热门球员」头像、「最新热讯」「V观点」两行封面为【品牌图】占位；
+   - 热讯/V观点 列表页封面为品牌图占位；
+   - 球员/资讯/Tier/阵容页点「分享」，分享图背景为新抽象图（无梅西）。
+   （注意：iOS 端开关有 10 分钟本地缓存，刚切换后杀 App 重开可立即生效。）
 5. 确认开关生效后再提交审核
 
 【审核通过后 · 恢复全部风险素材（无需重新提审、无需发版）】
@@ -95,20 +94,22 @@ npm ci → cap sync ios（www → ios/App/App/public）→ register_local_plugin
 【设计说明】
 - 评审期开关为 true，评审内容为合规呈现；审核通过的版本本身就是给真实用户的
   版本，无需任何 APP 更新——恢复素材是内容侧变更，与 APP 审核无关。
+- 占位封面用自有品牌图（非第三方素材），本身无任何合规风险；灰色图标占位与
+  品牌图占位合规等级相同，仅视觉差异。
 - 拉取失败（网络异常/文件 404）时 fail-open：不影响正常用户观感；
   故提审前务必确认文件在线且为 true。
 - 10 分钟本地缓存仅用于减少请求；开关切换的生效上限即 10 分钟。
 
 【提审前检查清单】
 - [ ] 宝塔 pts-safe-mode.json = {"safeMode": true} 且 curl 验证通过（见上）
-- [ ] App Store Connect 已创建 1.6663 (41) 新版本（构建号 41，勿再填 40）
+- [ ] App Store Connect 已创建 1.6663 (42) 新版本（构建号 42；41 已用过）
 - [ ] 元数据已按《AppStore提审文案包_20261020.md》粘贴（名称/副标题/关键词/描述/审核备注栏）
 - [ ] 截图已重做（UI 向、无肖像、无官方画面；可用 TestFlight 包实拍占位形态）
 - [x] App 图标已换原创图形（新主视觉截取，无真人——旧梅西+亚马尔版已废弃）
 - [x] 首页 hero 横幅已换新主视觉（本地打包，无梅西）
 - [x] 四张分享图背景已换新主视觉（本地 hero，无梅西）
+- [x] 安全模式封面门控全覆盖 + 占位统一为品牌图
 - [ ] TestFlight 真机回归：热讯页 V观点 tab 可见且可切换、微信登录、Apple 登录、
-      页面滚动、iPad 顶部不遮挡、左缘返回、四类分享图背景
-      （注：前端与 c40 同一 bundle，c40 已验证过的项可抽测；本包重点验证构建号 41 上传成功）
+      页面滚动、iPad 顶部不遮挡、左缘返回、四类分享图背景、首页/列表封面品牌占位
 - [ ] 确认微信开放平台已加 iPhone 平台信息（账号侧操作）
 - [ ] 提审后把回复话术贴进 Solution Center
