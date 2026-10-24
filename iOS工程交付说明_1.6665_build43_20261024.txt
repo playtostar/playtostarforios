@@ -15,23 +15,31 @@ App Store 1.666 (build 42) 被拒，两条：
   - 标题横幅：保持去字版（只有原创 E+星 logo + PlayToStar.com）；
   - 关键词：仍不填「实况足球 / eFootball」。
 
+【本包已修复的构建报错（重要）】
+  现象：Codemagic 构建在「Build web assets」步骤失败，提示
+        「未找到前端 app 目录（仓库需含 app/ 前端源码）」。
+  原因：playtostarforios 是独立 iOS 出包仓库，根目录就是本工程，
+        含已构建好的 www，但没有 app/ 前端源码。
+  修复：该步骤改为——检测到仓库已带 www 就直接使用、跳过构建；
+        只有在没有 www 且存在 app/ 源码时才现场构建。
+  因此本包覆盖推送后，构建会直接使用包内 www，不再报错。
+
 【这个文件夹怎么用】
-解压后本文件夹内就是完整工程，结构与你原来的一致：
+解压后本文件夹内就是完整工程：
   ios/                 iOS 原生工程（含最新页面）
-  www/                 最新前端构建产物
-  codemagic.yaml       Codemagic 构建配置
+  www/                 最新前端构建产物（index-oa8andGs.js）
+  codemagic.yaml       Codemagic 构建配置（已修复）
   capacitor.config.*   Capacitor 配置（appName 已为实况起点）
   package.json / package-lock.json
   register_local_plugins.py
   README_iOS上架完整指南.md
-直接把本文件夹里的内容全部覆盖到你本地工程即可。
+把本文件夹内容全部覆盖到 playtostarforios 本地仓库，然后推送，
+再到 Codemagic 点 Start new build 即可。
 
-【出包（只用 Codemagic，二选一）】
-  方式一（推荐）：代码已推送到 GIT（最新 f8cdd36），登录 codemagic.io，
-       选 ios-release 工作流，点 Start new build，等它变绿即可，
-       无需手动传任何文件。
-  方式二：用本文件夹本地覆盖后，在 Xcode 打开
-       ios/App/App.xcodeproj 自行归档。
+【出包（Codemagic 云端）】
+  代码推送到 playtostarforios 后，登录 codemagic.io，
+  选 iOS Release 工作流，点 Start new build，等它变绿。
+  无需手动传任何文件，也无需在云端构建前端。
 
 【本次已改内容】
   登录：
