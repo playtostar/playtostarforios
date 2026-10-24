@@ -28,6 +28,32 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
 
+      # mobile/www 不进 git（.gitignore），Codemagic 从 git clone 后必须先用前端
+      # 源码重新构建 APP 版 web 产物，否则 cap sync 会因 webDir 缺失而白屏/报错。
+      # 自适应定位 mobile/ 与 app/ 目录，兼容以仓库根或 mobile 子目录为构建目录。
+      - name: Build web assets (vite -> mobile/www)
+        script: |
+          set -e
+          MOBILE_DIR=""
+          if [ -f "$CM_BUILD_DIR/package.json" ] && [ -d "$CM_BUILD_DIR/ios/App" ]; then
+            MOBILE_DIR="$CM_BUILD_DIR"
+          elif [ -d "$CM_BUILD_DIR/mobile/ios/App" ]; then
+            MOBILE_DIR="$CM_BUILD_DIR/mobile"
+          fi
+          if [ -z "$MOBILE_DIR" ]; then echo "未找到 mobile 工程目录"; exit 1; fi
+          APP_DIR=""
+          for cand in "$MOBILE_DIR/../app" "$MOBILE_DIR/../../app"; do
+            p="$(cd "$cand" 2>/dev/null && pwd || true)"
+            if [ -n "$p" ] && [ -f "$p/package.json" ] && [ -f "$p/vite.config.ts" ]; then APP_DIR="$p"; break; fi
+          done
+          if [ -z "$APP_DIR" ]; then echo "未找到前端 app 目录（仓库需含 app/ 前端源码）"; exit 1; fi
+          echo "MOBILE_DIR=$MOBILE_DIR"; echo "APP_DIR=$APP_DIR"
+          cd "$APP_DIR"
+          npm ci
+          VITE_ENABLE_I18N=1 VITE_BASE=./ NODE_ENV=production \
+            npx vite build --config vite.config.ts --outDir "$MOBILE_DIR/www" --emptyOutDir
+          cd "$MOBILE_DIR"
+
       - name: Sync web assets (www -> iOS)
         script: npx cap sync ios
 
@@ -42,17 +68,15 @@ workflows:
       # CFBundleVersion（构建号）每次上传都必须高于 ASC 上已有的最高值，否则发布报
       # “attribute ... already been used / bundle version must be higher”。
       # Codemagic 自己的 BUILD_NUMBER 目前只有十几、不能直接用；这里：
-      #   默认 42（2026-10-20 起：ASC 历史最高 40——与用户历史 codemagic build
-      #   记录冲突，40 已被占；41 已实际上传 ASC，故默认升 42）。
-      #   iOS 构建号自此与安卓 versionCode 分叉：安卓仍是 40，两者不再强制对齐。
+      #   默认 43（2026-10-24 起：ASC 历史最高 42 已被 1.666 被拒构建占用）。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=43、44…（逐次 +1），无需重新打包。
+      #   IOS_BUILD_NO=44、45…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-42}
+          BN=${IOS_BUILD_NO:-43}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 42；41 已上传 ASC，下次重传设 43+）"
+          echo "本次 CFBundleVersion = $BN（默认 43；42 已上传 ASC，下次重传设 44+）"
 
       - name: Build IPA
         script: |
