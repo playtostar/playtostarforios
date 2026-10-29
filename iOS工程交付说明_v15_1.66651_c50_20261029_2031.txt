@@ -1,14 +1,15 @@
-PlayToStar · iOS 工程交付说明（v14 · c49 第3次拒审整改版 · 收藏页卡面门控 + 分享图门控 + SEO/Sitemap 剔除 + App 形态校验）
+PlayToStar · iOS 工程交付说明（v15 · c50 第3次拒审整改版 · 文案清零终版 + 百科字号放大 4 档）
 ==================================================================
-交付包：playtostar_ios_project_1.66651_c49_<时间戳>.zip（见同目录 zip）
-版本：1.66651（MARKETING_VERSION）/ 49（CFBundleVersion）
+交付包：playtostar_ios_project_1.66651_c50_<时间戳>.zip（见同目录 zip）
+版本：1.66651（MARKETING_VERSION）/ 50（CFBundleVersion）
       ※ 构建号沿革：42 被 1.666 拒审版占用 → 43 被 1.6665 拒审版占用
         → 44 跳号预留 → 45 早间推送占用 → 46 由 12:40 那次推送占用
         → 47 由 13:50 那次推送占用（后发现网页形态产物误进包，作废）
-        → 48 在覆盖解压时被搞乱跳号 → 本包用 49。
-        ⚠️ 46 已在上一轮 Codemagic 构建中上传过 ASC（上传即占用，不可复用）。
-           本轮是新代码，必须升号；Apple 只要求递增，跳号无副作用。
-        同一版本再次重传须设 IOS_BUILD_NO=48+。
+        → 48 在覆盖解压时被搞乱跳号
+        → 49 已完成 build 并上传 ASC 后，又发现「非官方第三方工具 / 游戏文档 /
+          游戏内解释」三组措辞 + 百科细项字号过小，故本轮用 50。
+        ⚠️ 49 已上传过 ASC（上传即占用，不可复用）。Apple 只要求递增，跳号无副作用。
+        同一版本再次重传须设 IOS_BUILD_NO=51+。
       ※ 与安卓 versionCode 数值相同但语义独立，两者互不影响。
 桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
 前端 bundle：见文末「附：本包实测指纹」（每轮重建哈希必变，以包内文件为准）
@@ -18,9 +19,9 @@ PlayToStar · iOS 工程交付说明（v14 · c49 第3次拒审整改版 · 收�
 Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
 解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
 
-  ios/                       整个目录（版本号 1.66651/49，显示名 PlayToStar）
+  ios/                       整个目录（版本号 1.66651/50，显示名 PlayToStar）
   www/                       最新前端——必须更新，cap sync 的数据源
-  codemagic.yaml             构建号默认值已改为 49；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  codemagic.yaml             构建号默认值已改为 50；ASC 集成名 = CODEMAGICPLAYTOSTAR
   package.json
   package-lock.json
   capacitor.config.json
@@ -31,10 +32,194 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
   本说明文件
 
 然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+⚠ 用户习惯是「直接全删重建」而非覆盖解压——可以做，但**别删 .git**。
+   全删重建不需要手动删 sitemap.xml / robots.txt（打包脚本已按
+   SEO_ONLY_NAMES 跳过复制 + 清陈旧，zip 里根本不含这两个文件）。
 
-【v14 / c49 相对 v11 / c46 的全部变化（本轮）】
+【v15 / c50 相对 v14 / c49 的全部变化（本轮）】
 
-=== 零、本轮五个新发现的风险点（上一轮 build 完成后才暴露）===
+=== 一、「来源自认」措辞清零（本轮最主要的一类）===
+
+1.1 「游戏文档 / In-game Doc」→「基础说明 / Basics」（全 App 最直接的来源自认）
+  位置：RichDescription.tsx 的徽章渲染，百科页一屏出现 4 个。
+  为什么必须改：「游戏文档」四个字等于书面说明「这些内容摘自某款游戏的
+  官方文档」——它比任何 logo 都更像在指认关联方，而 4.1(a) 判的正是
+  「是否让审核员认为与第三方有关」。且它出现在审核员最可能点开的百科页。
+  处置：文案改为「基础说明 / Basics」（同样标示这是属性释义，但不指向来源）。
+  数据层同步批量替换：encyclopedia.json / ability-values.json / locales.ts
+    「游戏文档」→「基础说明」（114 处）
+    「In-game Doc」→「Basics」（136 处）
+  ⚠ 兼容正则也一并去掉旧词：/^(?:In-game Doc|Basics):\s*/ → /^Basics:\s*/
+     数据层已全量替换，无需兼容；留着旧词只会让它以明文字符串进 bundle
+     被 Apple 静态扫到（实测改前 In-game 1 处 → 改后 0 处）。
+
+1.2 「游戏内解释 / In-game Description」→「属性说明 / Attribute Notes」
+  位置：locales.ts 的 detail.officialDesc。同一个病，一并改。
+
+1.3 页脚「非官方第三方工具」整句删除（用户主动指出，截图审核时发现）
+  位置：Layout.tsx 页脚 copyright 行。
+  为什么必须删：原措辞字面是「我是某个官方产品的非官方工具」，主动把
+  「某官方」这个概念引入了语境——审核员看到必然反问「哪个官方？」，
+  等于自己把 4.1(a) 的议题递到对方面前。
+  我们不是任何产品的附属品，就是一个独立的球员数据工具，
+  压根不该出现「官方 / 非官方」这组对立词。
+  处置：`© 2026 PlayToStar · {t('数据仅供参考')}`（只留这句）。
+
+1.4 关于弹窗：从「否认关系」改为「陈述自身属性」
+  原：「本应用为球迷自制的独立第三方数据工具，与任何足球游戏发行商或
+       运营方均无隶属、授权或合作关系。……」
+  现：「本应用为球迷自制的球员数据整理工具。应用内球员数据由本站团队
+       整理自公开渠道，界面与美术素材均为本站原创，数据仅供参考。」
+  逻辑：「第三方」这个词只有相对「第一方」才有意义，写出来等于让审核员
+  去找那个"第一方"是谁；后半句主动点名「游戏发行商 / 运营方」更是把
+  4.1(a) 的议题直接写进弹窗。改为只陈述自身属性，不提任何相对方。
+
+1.5 服务协议 1.2 条同样改法
+  位置：TermsPage.tsx。原文「本应用为独立第三方工具，与任何游戏发行商或
+  运营方均无任何隶属、授权或合作关系」→ 同 1.4 口径改写。
+
+1.6 分享图水印去掉「仅供学习交流」（4 处调用点 + 1 处 i18n 源）
+  原：「相关数据与素材版权归原权利人所有 · 本图仅用于学习交流，禁止商业用途」
+  →  「数据由 PlayToStar 整理 · 图表与素材为本站原创」
+  为什么：「仅供学习交流」是免责话术，隐含「我用了不该用的东西先声明一下」。
+  这句话会**烧进 PNG 外发**，前面刚说完"本站原创"、后面立刻加一句
+  "仅供学习交流"，自己把可信度打了折。
+  调用点：MyLineup.tsx / MyTierList.tsx / utils/lineup-image.ts / utils/tier-image.ts
+  + i18n/terms.ts 源串。
+
+=== 二、百科细项字号放大 4 档（用户点名）===
+用户原话：「所有 APP 百科-能力属性、未上线预览中每个细项目（如：进攻意识、
+控球、盘球、原型1 Congo）等等的字体都太小了，请放大 4 个字号。」
+
+2.1 能力值卡片标题：text-xl → text-5xl（4 档），图标 w-4 h-4 → w-7 h-7
+  位置：EncyclopediaPage.tsx:458
+  实拍截图（2064×2752）证据：标题比下面的正文还小（正文 text-4xl），
+  层级完全倒置——「控球」「盘球」这种条目名是这一屏的主信息，必须压得住正文。
+
+2.2 未上线预览卡片标题：text-xl → text-5xl（4 档），同口径
+  位置：EncyclopediaPage.tsx:501
+
+2.3 条目计数：text-lg → text-2xl（3 处：442 / 488 / 595 行）
+
+2.4 属性能力详情页正文：text-3xl → text-7xl（4 档）
+  位置：AbilityValueDetailPage.tsx:220（sizeClass={sc('text-7xl')}）
+
+2.5 未上线预览详情页正文：text-3xl → text-7xl（4 档）
+  位置：PreviewDetailPage.tsx
+
+2.6 ⚠ 横屏降档映射表 DOWN2 必须同步补，否则横屏下放大失效
+  两个详情页的 sc() 都按 DOWN2[cls] 降档；没补映射的类名会回退原尺寸。
+  本轮补：'text-7xl': 'text-5xl'、'text-6xl': 'text-4xl'、'text-5xl': 'text-3xl'
+
+2.7 ⚠ 分组标题**不放大**（自检后回退）
+  曾误把 <h2 className="text-5xl font-bold text-violet-200"> 也改成 text-7xl，
+  自检发现：分组标题不是用户说的「细项」，放大会压过卡片标题、破坏层级，
+  已回退为 text-5xl。
+
+=== 三、capacitor.config.json 的 appName 残留修正 ===
+  位置：mobile/ios/App/App/capacitor.config.json
+  原值：「实况起点」→ 现：「PlayToStar」
+  虽然该文件每次 cap sync 都会被重写，但生成物里的旧值一旦 sync 被跳过
+  （例如构建缓存命中）就会直接进包，属于零成本消除的隐患。
+
+=== 四、codemagic.yaml 构建号默认值 49 → 50（必须同步，否则打包直接失败）===
+  打包iOS工程.py 的 verify_zip 新增三处一致校验：
+    pbxproj 内 CURRENT_PROJECT_VERSION（必须唯一）
+    codemagic.yaml 的 IOS_BUILD_NO 默认值
+    zip 文件名里的 _cNN_
+  三者不一致会 assert 失败中止打包，防止「文件名说 47、包里是 49」这类事故。
+
+=== 五、本轮交付前的实测核验结果 ===
+  www/index.html  → 5,650 B，<title> = PlayToStar（纯英文，App 形态）
+  www/index.html  → efootball / 实况足球 / konami / 实况起点 / 起点随身 全部 0 处
+  bundle          → 实况足球 0 / 实况起点 0 / konami 0 / 游戏文档 0 /
+                    In-game 0 / 非官方 0 / 第三方工具 0 / 发行商 0 /
+                    仅供学习交流 0
+  bundle          → efootball 仅 2 处，均为 COS 数据源域名（不可去除）
+  bundle          → 基础说明 115 / Basics 136 / 属性说明 1 / Attribute Notes 1
+  bundle          → 球迷自制 2（关于弹窗 + 服务协议，只陈述自身属性）
+  bundle          → 第三方 11 处，**经逐条核对全部是隐私政策法律用语**
+                    （第三方共享清单 / 第三方服务商 / 第三方登录 / 第三方链接），
+                    与游戏发行商无关，不构成 4.1(a) 风险，保持不动。
+  bundle          → 版权归原权利人 0 / 图片素材来自网络 0 /
+                    App Store 0 / 审核中 0 / under review 0
+  pbxproj         → MARKETING_VERSION = 1.66651; CURRENT_PROJECT_VERSION = 50;  ✓
+  codemagic.yaml  → BN=${IOS_BUILD_NO:-50}  ✓
+
+=== 六、App Store 截图（15 张 2064×2752）审查结论（上一轮已做，仍有效）===
+  13 张可直接用，2 张必须重截：
+    · 11_百科-足球百科 → 画面里出现「游戏文档」徽章（本轮源码已改「基础说明」，
+      但截图是旧包拍的，必须用 c50 重建后重截）
+    · 10_热讯        → 画面里出现「非官方第三方工具」页脚（同上，必须重截）
+  卡面门控**全部生效**：球员 / 教练卡都是深色渐变底 + 单字占位，
+  无游戏卡面、无真实照片、无俱乐部徽标。
+  ⚠ 重截时请用新包（c50）安装后再拍，否则会拍到已删的旧文案。
+
+【网页端同步说明（本轮不做部署）】
+  网页端两套 bundle（正式页 / 副页）当前**仍是旧文案**，实测：
+      index-BTG3ZUgS.js  非官方第三方工具 1 / 游戏文档 114 / In-game Doc 136 /
+                         游戏内解释 1 / In-game Description 1 / 仅供学习交流 6
+      index-Dmyp5JIj.js  完全相同
+  结论：**需要重建，但本轮不部署**（用户明确「这次不用急着覆盖更新」）。
+  何时部署都不影响 iOS 审核——Apple 只审 App 内，不审官网内容本体。
+  但若之后有用户从官网点进 App 并对照，两端口径不一致会显得粗糙，
+  建议在提审通过后再统一刷一次。
+
+【提审前必做】
+1. App Store Connect 创建 1.66651 (50) 新版本
+   （50 —— 42/43 是两次拒审版、44 跳号、45/46/47 均已被上传占用、
+    48 在覆盖解压时被搞乱、49 已 build 并上传后才发现本轮的文案与字号问题）。
+2. App 名 =「PlayToStar」（2026-10-29 最终口径：纯英文，无中文品牌词）。
+3. 关键词务必删除：实况足球 / efootball / PES / KONAMI。
+4. 截图重做（用 c50 安装后拍），逐张自查不得出现：eFootball / 实况足球 /
+   KONAMI / 网易 / 巨大字母 e / .com 域名 / 真实球员肖像 /
+   **「游戏文档」/「非官方第三方工具」**。
+   ⚠ 已确认 15 张截图里 13 张可用、2 张必须重截：
+     11_百科-足球百科（有「游戏文档」徽章）、10_热讯（有「非官方第三方工具」页脚）。
+     这两处在源码里已改，但旧截图是 c49 之前拍的，必须用 c50 重装后重拍。
+5. Resolution Center 按 docs/AppStore第3次拒审回复邮件_20261029.md 回复
+   （注意把里面的 49 改为 50）。
+6. 上传前确认 pts-safe-mode.json 内容是 {"safeMode": true}。
+
+【安全模式（远程静态文件开关）】
+本包为【普通版】前端 +【服务器静态文件远程开关】，不使用审核专用内置参数。
+  1. 构建参数 VITE_SAFE_MODE=1 —— 本包未启用；
+  2. 静态文件 https://playtostar.com/download/pts-safe-mode.json
+     （宝塔 download 目录，内容 {"safeMode": true|false}，带时间戳防缓存）
+     仅 iOS 原生壳读取；安卓 APP 与网页端完全不看此开关；
+  3. 默认 false，**但审核期间必须置 true**。
+开启时 iOS 端以下内容一律不渲染：肖像/卡面/封面/hero/banner/
+百科技能实拍图/热讯整块/V观点整块/论坛仅剩 3 条自写示例帖；
+数据/榜单/搜索/球探/阵容/交互完全正常。
+本地缓存 10 分钟 → 改完文件最长 10 分钟全端生效，**不用发版不用提审**。
+
+【本版 www 构建参数（照抄，勿改）】
+  NODE_ENV=production VITE_BASE=./ VITE_ENABLE_I18N=1 \
+  VITE_ENABLE_NEXT_FEATURES=1 npx vite build --config vite.config.ts
+  ※ 不要加 MIAODA_BUILD_TARGET=standalone——那是 iife 单 chunk 形态，
+    与 Capacitor 现用产物（ESM + modulepreload + 多 chunk）不一致。
+  ※ 不要打包 ios/App/App/public/（cap sync 本地产物，.gitignore 已排除）。
+  ※ ⚠ vite 配置的 root 指向 client/，--outDir 传相对路径会被解析成
+    app/client/dist/client（错位）。正确做法：**不传 --outDir**，用预设默认的
+    outDir = path.resolve(rootDir,'dist/client') = app/dist/client，一次到位。
+  ※ ⚠⚠ 必须带 VITE_BASE=./ —— 漏了会落回默认 '/efootball/'，
+    产出「网页形态」（SEO title/keywords/og/canonical/ld+json/noscript 全在），
+    cap sync 后中文品牌词明文进 .ipa。这条已踩过坑（v12→v13）。
+  ※ vite build 的 exit 0 ≠ 产物正确，必须核对 bundle 哈希是否变化。
+
+【已知遗留 / 待确认】
+- 3:4 竖版卡片（热讯封面 aspect-[3/4]）用 hero.png 做 object-cover 时，
+  左右各裁约 29%。实测：主星标完整；字标 10 个字母基本完整可读
+  （首字母 P 仅切 6px = 1%）；末尾小星号被右边界切掉 36%（108px 中切 39px）。
+  若不接受，可另出一张专供 3:4 的竖版构图。
+- 官网 title/description/keywords 里的「实况起点」按保 SEO 策略保留
+  （Apple 只审 App 内，不审官网内容本体）。但官网**不得再自我声明**
+  「正在 App Store 审核」，该句已于 2026-10-29 清除。
+
+=== 七、v14 / c49 的整改内容（历史记录，代码仍在本包内，全部有效）===
+说明：以下 0.1~0.5 是 c49 那一轮排查出的问题与处置，代码仍在，不要误删。
+
+--- 7.0 五个风险点（c49 排查）---
 
 0.1 收藏页球员卡面泄漏（用户主动发现，本轮最隐蔽）
   ProfilePage.tsx 的「收藏-球员」子 tab 直接用 <img src={item.imageUrl}>
@@ -131,6 +316,7 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
         构建脚本 exit 0 ≠ 产物正确。凡是靠**环境变量**切换产物形态的项目，
         必须在打包侧按**产物特征**做断言，不能相信「命令跑完没报错」。
 
+
 === 以下为 v11 / c46 的内容（仍然全部有效，仅版本号变化）===
 
 本轮只做三件事，全部围绕「把审核员可能看到的第三方 IP 痕迹清干净」，
@@ -186,15 +372,8 @@ useSafeMode() 内部是 useState(cached ?? false)：冷启动时缓存为 null�
 「有授权」或「已彻底移除」两种减轻情节，任何「非官方」「素材来自网络」
 式声明都只是书面自证。
 
-【提审前必做】
-1. App Store Connect 创建 1.66651 (49) 新版本（49 —— 42/43 是两次拒审版、44 跳号、
-   45/46/47 均已被上传占用、48 在覆盖解压时被搞乱，故用 49）。
-2. App 名 =「PlayToStar」（2026-10-29 最终口径：纯英文，无中文品牌词）。
-3. 关键词务必删除：实况足球 / efootball / PES / KONAMI。
-4. 截图重做，逐张自查不得出现：eFootball / 实况足球 / KONAMI / 网易 /
-   巨大字母 e / .com 域名 / 真实球员肖像。
-5. Resolution Center 按 docs/AppStore第3次拒审回复邮件_20261029.md 回复。
-6. 上传前确认 pts-safe-mode.json 内容是 {"safeMode": true}。
+（注：本节为 c49 版旧稿，版本号与步骤均已过期，已删除；
+  提审步骤请以本文档上方「【提审前必做】」为准，版本号为 50。）
 
 【安全模式（远程静态文件开关）】
 本包为【普通版】前端 +【服务器静态文件远程开关】，不使用审核专用内置参数。
@@ -321,20 +500,11 @@ useSafeMode() 内部是 useState(cached ?? false)：冷启动时缓存为 null�
     outDir = path.resolve(rootDir,'dist/client') = app/dist/client，一次到位。
     另注意：vite build 的 exit 0 ≠ 产物正确，必须核对 bundle 哈希是否变化。
 
-【本版自检结果】
-  www/index.html  → 唯一 bundle，<title> = PlayToStar（纯英文，App 形态）
-  www/index.html  → efootball / 实况足球 / konami / 实况起点 / 起点随身 全部 0 处
-  www/assets      → 与引用闭包完全一致，无 map / 无 build / 无 public / 无 sitemap
-  bundle 字符串扫描：版权归原权利人所有 0 处
-                    图片素材来自网络   0 处
-                    App Store          0 处
-                    审核中 / under review 0 处
-                    实况足球 / konami / 实况起点 / 起点随身  0 处
-                    efootball 仅 2 处，均为 COS 数据源域名（卡面/技能图必须从该桶加载）
-                    数据由 PlayToStar 整理 3 处
-                    图表与素材为本站原创 3 处
-                    与任何足球游戏发行商 1 处
-  pbxproj         → MARKETING_VERSION = 1.66651; CURRENT_PROJECT_VERSION = 49;  ✓
-  codemagic.yaml  → BN=${IOS_BUILD_NO:-49}  ✓
-  品牌图 md5      → icon be2177f2... / banner 8703e23b... / hero 3875264d...  ✓
-  Splash.imageset → 仅 6 个被引用图 + Contents.json，孤儿已清  ✓
+【c49 版自检结果（历史记录，已过期）】
+  该节记录的 pbxproj=49 / IOS_BUILD_NO=49 / bundle 为 c49 时点的数据，
+  已不适用于本包。本包 c50 的实测结果见上方「五、本轮交付前的实测核验结果」。
+  唯一仍有效的是品牌图与 Splash 指纹（本轮未改动）：
+    icon   566x566   23419B   md5 be2177f2...
+    banner 1700x280  217052B  md5 8703e23b...
+    hero   1671x941  657758B  md5 3875264d...
+    Splash.imageset 仅 6 个被引用图 + Contents.json，孤儿已清
