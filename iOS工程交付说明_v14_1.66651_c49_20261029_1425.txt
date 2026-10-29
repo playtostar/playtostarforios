@@ -1,10 +1,11 @@
-PlayToStar · iOS 工程交付说明（v13 · c47 第3次拒审整改版 · 收藏页卡面门控 + 分享图门控 + SEO/Sitemap 剔除 + App 形态校验）
+PlayToStar · iOS 工程交付说明（v14 · c49 第3次拒审整改版 · 收藏页卡面门控 + 分享图门控 + SEO/Sitemap 剔除 + App 形态校验）
 ==================================================================
-交付包：playtostar_ios_project_1.66651_c47_<时间戳>.zip（见同目录 zip）
-版本：1.66651（MARKETING_VERSION）/ 47（CFBundleVersion）
+交付包：playtostar_ios_project_1.66651_c49_<时间戳>.zip（见同目录 zip）
+版本：1.66651（MARKETING_VERSION）/ 49（CFBundleVersion）
       ※ 构建号沿革：42 被 1.666 拒审版占用 → 43 被 1.6665 拒审版占用
         → 44 跳号预留 → 45 早间推送占用 → 46 由 12:40 那次推送占用
-        → 本包用 47。
+        → 47 由 13:50 那次推送占用（后发现网页形态产物误进包，作废）
+        → 48 在覆盖解压时被搞乱跳号 → 本包用 49。
         ⚠️ 46 已在上一轮 Codemagic 构建中上传过 ASC（上传即占用，不可复用）。
            本轮是新代码，必须升号；Apple 只要求递增，跳号无副作用。
         同一版本再次重传须设 IOS_BUILD_NO=48+。
@@ -17,9 +18,9 @@ PlayToStar · iOS 工程交付说明（v13 · c47 第3次拒审整改版 · 收�
 Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
 解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
 
-  ios/                       整个目录（版本号 1.66651/47，显示名 PlayToStar）
+  ios/                       整个目录（版本号 1.66651/49，显示名 PlayToStar）
   www/                       最新前端——必须更新，cap sync 的数据源
-  codemagic.yaml             构建号默认值已改为 47；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  codemagic.yaml             构建号默认值已改为 49；ASC 集成名 = CODEMAGICPLAYTOSTAR
   package.json
   package-lock.json
   capacitor.config.json
@@ -31,7 +32,7 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
 
 然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
 
-【v12 / c47 相对 v11 / c46 的全部变化（本轮）】
+【v14 / c49 相对 v11 / c46 的全部变化（本轮）】
 
 === 零、本轮五个新发现的风险点（上一轮 build 完成后才暴露）===
 
@@ -90,7 +91,7 @@ Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根�
 0.5 ★ 打包时误用「网页形态」产物（本说明 v12 定稿后才查出，已重出包）
   这是本轮最后一个、也是最容易漏掉的问题，记下来避免复发。
 
-  现象：对 c47 包做全量商标词扫描，发现
+  现象：对 c47 包（已作废）做全量商标词扫描，发现
         www/index.html            23 处命中
         www/assets/index-*.js      9 处命中（v11 时仅 2 处）
   两者都会 cap sync 进 .app，等于把中文品牌词明文送进 .ipa。
@@ -186,7 +187,8 @@ useSafeMode() 内部是 useState(cached ?? false)：冷启动时缓存为 null�
 式声明都只是书面自证。
 
 【提审前必做】
-1. App Store Connect 创建 1.66651 (47) 新版本（47，不是 46 —— 46 已被上一轮占用）。
+1. App Store Connect 创建 1.66651 (49) 新版本（49 —— 42/43 是两次拒审版、44 跳号、
+   45/46/47 均已被上传占用、48 在覆盖解压时被搞乱，故用 49）。
 2. App 名 =「PlayToStar」（2026-10-29 最终口径：纯英文，无中文品牌词）。
 3. 关键词务必删除：实况足球 / efootball / PES / KONAMI。
 4. 截图重做，逐张自查不得出现：eFootball / 实况足球 / KONAMI / 网易 /
@@ -332,7 +334,7 @@ useSafeMode() 内部是 useState(cached ?? false)：冷启动时缓存为 null�
                     数据由 PlayToStar 整理 3 处
                     图表与素材为本站原创 3 处
                     与任何足球游戏发行商 1 处
-  pbxproj         → MARKETING_VERSION = 1.66651; CURRENT_PROJECT_VERSION = 47;  ✓
-  codemagic.yaml  → BN=${IOS_BUILD_NO:-47}  ✓
+  pbxproj         → MARKETING_VERSION = 1.66651; CURRENT_PROJECT_VERSION = 49;  ✓
+  codemagic.yaml  → BN=${IOS_BUILD_NO:-49}  ✓
   品牌图 md5      → icon be2177f2... / banner 8703e23b... / hero 3875264d...  ✓
   Splash.imageset → 仅 6 个被引用图 + Contents.json，孤儿已清  ✓
