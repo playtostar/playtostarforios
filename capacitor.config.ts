@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.playtostar.app',
-  appName: '实况起点',
+  appName: 'PlayToStar',
   webDir: 'www',
   android: {
     // 仅允许 HTTPS，禁止混合内容（图片与接口均为 HTTPS）
