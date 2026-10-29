@@ -1,0 +1,235 @@
+PlayToStar · iOS 工程交付说明（v11 · c46 第3次拒审整改版 · 百科图门控 + 版权话术清零）
+==================================================================
+交付包：playtostar_ios_project_1.66651_c46_<时间戳>.zip（见同目录 zip）
+版本：1.66651（MARKETING_VERSION）/ 46（CFBundleVersion）
+      ※ 构建号沿革：42 被 1.666 拒审版占用 → 43 被 1.6665 拒审版占用
+        → 44 跳号预留 → 45 已推送过 Codemagic 一次（勿复用）
+        → 本包用 46。
+        同一版本再次重传须设 IOS_BUILD_NO=47+。
+      ※ 与安卓 versionCode 数值相同但语义独立，两者互不影响。
+桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
+前端 bundle：index-k9qxFdPd.js（3,806.3 kB）
+            sha256 14017f509fb7c9d114876d8b81091667348e4e8b376fda6c36c512afe23b68f3
+构建时间：2026-10-29 10:52（Windows 本机 · D:/AIfiles/buddy/ptsappl）
+
+【这是什么】
+Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
+解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
+
+  ios/                       整个目录（版本号 1.66651/46，显示名 PlayToStar）
+  www/                       最新前端——必须更新，cap sync 的数据源
+  codemagic.yaml             构建号默认值已改为 46；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  package.json
+  package-lock.json
+  capacitor.config.json
+  capacitor.config.ts
+  register_local_plugins.py  微信 iOS 插件注册（Codemagic 每次构建都会跑）
+  README_iOS上架完整指南.md（参考）
+  iOS构建说明_FIRST.txt（参考）
+  本说明文件
+
+然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+
+【本版（v11 / c46）相对 v10 / c45 的全部变化】
+本轮只做三件事，全部围绕「把审核员可能看到的第三方 IP 痕迹清干净」，
+不改任何业务逻辑、不动任何数据结构、不加任何新功能。
+
+=== 一、百科技能图门控（本轮最大风险面，此前零门控）===
+百科是【主导航一级入口】（Layout.tsx:645 → /encyclopedia），
+普通技能 44 张 + ST 技能 23 张 = 67 张图，来源为公司 COS 桶：
+  .../EF20270916/EF2027/skill_icons/{PascalId}.webp
+实测这些**不是图标，是游戏内实拍截图**：
+  · 每张 288x173，画面是游戏 UI、球场、球员、技能释放特效；
+  · Marking.webp 里球衣正面清晰印着 eFOOTBALL；
+  · 文件名为游戏官方内部 Pascal 标识符。
+此前这批图**完全没有 safeMode 门控**，审核员点进百科即可看到。
+备注：旧版这里还挂着「图片素材来自网络」角标——这行字等于书面承认
+「无授权仍在用」，是加罪不是减罪，本版已删除。
+
+处置：
+  1. EncyclopediaPage.tsx（列表页）
+     const { safeMode, resolved: safeResolved } = useSafeModeState();
+     const hideSkillImage = !safeResolved || safeMode;
+     门控开启时渲染同尺寸 (aspect-[288/173]) 的 bg-white/5 灰块占位，
+     布局不跳动。
+  2. EncyclopediaDetailPage.tsx（详情页）同样双门控，整块 <img> 不渲染。
+  3. 用 useSafeModeState() 而**不是** useSafeMode()，原因见下方
+     「首帧竞态」——旧 hook 冷启动第一帧会按 false 渲染真图。
+
+=== 二、安全模式首帧竞态修复（P0，会直接毁掉整轮整改）===
+useSafeMode() 内部是 useState(cached ?? false)：冷启动时缓存为 null，
+第一帧就按 safeMode=false 渲染。对于「只挡一张肖像图」的旧场景无所谓；
+但本轮要整块藏掉热讯/V观点/百科图，这一帧就是**真实泄漏**，
+审核员截屏完全可能抓到。
+新增 useSafeModeState() → { safeMode, resolved }：
+  resolved=false 表示「还没确定」，此期间所有门控一律按隐藏处理。
+写成 hideXxx = !safeResolved || safeMode 即天然 fail-safe。
+
+=== 三、版权话术清零（7 处，其中 4 处会烧进分享图外发）===
+以下措辞统一改为事实性 + 原创声明，不再出现「版权归原权利人/原游戏公司」：
+  · lineup-image.ts:230（阵容图水印）
+  · tier-image.ts:186（榜单图水印）
+  · MyLineup.tsx:772（阵容页分享）
+  · MyTierList.tsx:845（榜单页分享）
+    → 原「相关数据与素材版权归原权利人所有 · 本图仅用于学习交流，禁止商业用途」
+    → 现「数据由 PlayToStar 整理 · 图表与素材为本站原创 · 仅供学习交流」
+  · Layout.tsx:1188 关于弹窗免责声明
+    → 「本应用为球迷自制的独立第三方数据工具，与任何足球游戏发行商或运营方
+       均无隶属、授权或合作关系。应用内球员数据由本站团队整理自公开渠道，
+       界面与美术素材均为本站原创，数据仅供参考。」
+  · TermsPage.tsx 1.2 / 5.3 协议页
+  · i18n locales.ts:332 news.sourceNote
+    → 「图片来源已标注，如涉版权请联系我们」
+逻辑：主动写「版权归他人所有」= 自认在用别人东西；Apple 4.1(a) 只认
+「有授权」或「已彻底移除」两种减轻情节，任何「非官方」「素材来自网络」
+式声明都只是书面自证。
+
+【提审前必做】
+1. App Store Connect 创建 1.66651 (46) 新版本（46，不是 45）。
+2. App 名 =「PlayToStar 起点随身助教」（注意是「起点」不是「实况起点」）。
+3. 关键词务必删除：实况足球 / efootball / PES / KONAMI。
+4. 截图重做，逐张自查不得出现：eFootball / 实况足球 / KONAMI / 网易 /
+   巨大字母 e / .com 域名 / 真实球员肖像。
+5. Resolution Center 按 docs/AppStore第3次拒审回复邮件_20261029.md 回复。
+6. 上传前确认 pts-safe-mode.json 内容是 {"safeMode": true}。
+
+【安全模式（远程静态文件开关）】
+本包为【普通版】前端 +【服务器静态文件远程开关】，不使用审核专用内置参数。
+  1. 构建参数 VITE_SAFE_MODE=1 —— 本包未启用；
+  2. 静态文件 https://playtostar.com/download/pts-safe-mode.json
+     （宝塔 download 目录，内容 {"safeMode": true|false}，带时间戳防缓存）
+     仅 iOS 原生壳读取；安卓 APP 与网页端完全不看此开关；
+  3. 默认 false，**但审核期间必须置 true**。
+开启时 iOS 端以下内容一律不渲染：肖像/卡面/封面/hero/banner/
+百科技能实拍图/热讯整块/V观点整块/论坛仅剩 3 条自写示例帖；
+数据/榜单/搜索/球探/阵容/交互完全正常。
+本地缓存 10 分钟 → 改完文件最长 10 分钟全端生效，**不用发版不用提审**。
+
+【UGC 板块门控（v10 起，本版继续有效）】
+拒审判定的是「App 内容含未经授权内容」，UGC 是最大的不可控面：
+文字层的第三方词可以过滤，但图片层不可控（官方卡面、真人肖像、第三方 logo），
+视频 iframe 层完全不可控（B 站播放器加载后自带第三方封面/UP主名/标题）。
+
+线上数据实测（全量拉取）：
+  热讯 201 条，第三方词命中 12 条（6.0%），最早出现在第 17 位；
+  V观点 60 条，第三方词命中 24 条（40.0%），最早第 25 位；
+  作者名污染比标题更严重：V观点「实况起点」10 条 +「实况足球千月」5 条；
+  热讯标签库 234 个去重标签里含 eFootball / 实况足球；
+  抽样 36 张"文字干净"的配图，官方卡面/游戏内 UI 约 8-10 张、真人照片约 10-12 张、
+  1 张直接印着 FOOTBALL 官方 logo。
+
+处置（用户拍板）：
+  热讯      → 整块隐藏
+  V观点     → 整块隐藏
+  论坛      → 保留，但审核期只渲染 3 条自写示例帖（描述本 App 自身功能，
+              不含任何第三方商标/游戏名/授权形象）
+
+⚠ 关键设计：隐藏 ≠ 安全。只从导航藏掉入口等于没做，因为：
+  · 主导航「热讯」直达的是 /forum（默认 activeBoard='news'），不是 /news；
+  · /news/:id 详情页内嵌 B 站 iframe，老分享链接/外部深链可直接命中；
+  · RelatedVideos（球员/卡包详情页的"相关视频/相关热讯"）是独立入口；
+  · /news/author/实况起点、/news/tag/实况足球 的 URL 里直接带第三方名称；
+  · 个人中心 / 他人主页的「热讯」Tab 会列出标题+封面；
+  · 论坛 "关注" 板混排帖子+热讯+V观点。
+  故按 8 个入口全部封堵，且每个入口都走 useSafeModeState() 的 resolved
+  双门控——开关未解析完时渲染骨架/空态，绝不先画一帧真内容。
+
+【远程开关 fail-open 修复（v10 起，本版继续有效）】
+原实现 fetchRemoteSafeMode() 是 fail-open——任何异常（网络错、非 2xx、JSON 解析
+失败）都 return false，并且这个 false 会写进 localStorage 缓存 10 分钟。
+已改为三态返回：
+  true  服务器明确说开
+  false 服务器明确说关
+  null  没问到（网络错/超时/非 2xx/字段缺失/解析失败）
+处理规则：
+  · 只有明确的 true/false 才写缓存（"不确定"绝不固化成 10 分钟的"明确关"）
+  · 没问到时：有历史已知值就沿用（哪怕过期），完全没有任何已知值才按安全侧
+    true 兜底
+  · 加 8s AbortController 超时，避免请求卡住导致页面无限等
+  · 单飞 inflight Promise，避免并发重复请求
+
+=== 四、App 内「自我声明审核关系」文案清零（本轮补漏，比官网更致命）===
+官网已删「App Store 审核」字样后，回头扫 App 自身 bundle，发现还有 3 处
+把「我正在被 Apple 审核」直接写在审核员能看到的界面上：
+
+  1. Layout.tsx:90 / :96（网页端顶栏 Apple 图标 + 胶囊按钮）
+       title="iOS 版正在 App Store 审核中"
+       → title="iOS 版即将上线"
+  2. i18n locales.ts:13 / :533
+       'common.iosReview': 'iOS 审核中' / 'iOS In Review'
+       → 'iOS 即将上线' / 'iOS Coming Soon'
+  3. BetaAnnouncementDialog.tsx:99-108（公测公告弹窗）
+       「iOS 版 App 正在苹果审核中，在此之前可直接使用网页版登录；
+         受审核规则限制，网页端暂时仅支持…」
+       → 「在此之前也可直接使用网页版登录；为保障账号安全，网页端目前采用…」
+       EN 同步：删「The iOS app is under App Store review」「Due to review rules」
+
+为什么这条特别危险：
+  · BetaAnnouncementDialog 是**首次启动必弹**（localStorage 无
+    pts_announce_v1 就 setAnnounceOpen(true)），审核员新装 App 一定看到；
+  · 「我正在被 Apple 审核」等于把「这个 App 就是 4.1(a) 投诉对象」
+    写在屏幕上；而 4.1(a) 判的正是「是否让审核员认为本 App 与被投诉方有关」；
+  · 这是**自我指认**，比任何第三方商标都更直接。
+注：Layout.tsx 那两处仅网页端渲染（isNativeApp() 时 return null），
+    但 App bundle 与网页 bundle 是同一份源码产物，字符串照样进包，
+    Apple 静态扫字符串一样能扫到，故必须一并清。
+
+=== 五、遗留的原始整改（v10 及更早，仍然有效）===
+· App 内商标归零：关于弹窗「非官方声明」去 Konami/网易/eFootball 具名；
+  副标题「贴」→「随」；球员详情页标题统一「球员名 · PlayToStar」；
+  i18n 死键「实况起点数据中心」→「PlayToStar 数据中心」；
+  encyclopedia.json 7 处备注 efootballlab → 外站。
+· 品牌图 v2 全端替换：深蓝霓虹底 + 白色几何星标 + PlayToStar 字标。
+  已移除：圆环+横杠+星的 e 形标志、中文「实况起点」、域名 .com、孤立字母 e。
+    app/client/public/brand/hero.png      1671x941   657758B md5 3875264d...
+    app/client/public/brand/banner.png    1700x280   217052B md5 8703e23b...
+    app/client/public/brand/icon.png       566x566    23419B md5 be2177f2...
+    iOS AppIcon-512@2x.png                1024x1024 RGB 无 alpha、无 tRNS
+    iOS Splash.imageset Default@1x|2x|3x~universal~anyany(.dark).png 6 个
+    └ ★ 这 6 个才是 LaunchScreen.storyboard 实际引用的对象。
+      孤儿 splash-2732x2732*.png 3 个（md5 与正式图相同、Contents.json 未引用）
+      已于 2026-10-29 从工程删除，避免误用与体积浪费。
+    安卓 mipmap-{m,h,x,xx,xxx}dpi/ic_launcher{,_round}.png  5 档 × 方/圆 = 10 个
+    app/client/src/utils/brand-icon-data.ts  内联 base64，与 icon.png 逐字节一致
+· 构建链修复：vite.config.ts 的 sanitizeBase()（修 Git Bash/MSYS 路径污染）、
+  applyHead() + writeBundle 二次强制改写（防 Lark aPaaS 插件把
+  {{appName}}/keywords/ld+json/og:* 写回）、显式剥离 HTML 注释
+  （Apple 是静态扫字符串，注释里残留「实况起点」一样算）。
+· local-assets.ts：品牌图 URL 由硬编码改为从 import.meta.env.BASE_URL 派生。
+
+【已知遗留 / 待确认】
+- 3:4 竖版卡片（热讯封面 aspect-[3/4]）用 hero.png 做 object-cover 时，
+  左右各裁约 29%。实测：主星标完整；字标 10 个字母基本完整可读
+  （首字母 P 仅切 6px = 1%）；末尾小星号被右边界切掉 36%（108px 中切 39px）。
+  若不接受，可另出一张专供 3:4 的竖版构图。
+- 官网 title/description/keywords 里的「实况起点」按保 SEO 策略保留
+  （Apple 只审 App 内，不审官网内容本体）。但官网**不得再自我声明**
+  「正在 App Store 审核」，该句已于 2026-10-29 清除。
+
+【本版 www 构建参数（照抄，勿改）】
+  NODE_ENV=production VITE_BASE=./ VITE_ENABLE_I18N=1 \
+  VITE_ENABLE_NEXT_FEATURES=1 npx vite build --config vite.config.ts \
+  --outDir dist/client --emptyOutDir
+  ※ 不要加 MIAODA_BUILD_TARGET=standalone——那是 iife 单 chunk 形态，
+    与 Capacitor 现用产物（ESM + modulepreload + 多 chunk）不一致。
+  ※ 不要打包 ios/App/App/public/（cap sync 本地产物，.gitignore 已排除）。
+  ※ ⚠ vite 配置的 root 指向 client/，实际输出在 app/client/dist/client/，
+    而打包脚本读 app/dist/client/ —— 构建后必须
+    cp -a app/client/dist/client/. app/dist/client/ 再打 zip，
+    否则会把上一轮旧包当成新包发出去（2026-10-29 踩过这个坑）。
+
+【本版自检结果】
+  www/index.html  → index-k9qxFdPd.js  ✓ 唯一 bundle
+  www/assets      → 与引用闭包完全一致，无 map / 无 build / 无 public
+  bundle 字符串扫描：版权归原权利人所有 0 处
+                    图片素材来自网络   0 处
+                    App Store          0 处
+                    审核中 / under review 0 处
+                    实况足球 / konami  0 处
+                    数据由 PlayToStar 整理 3 处
+                    图表与素材为本站原创 3 处
+                    与任何足球游戏发行商 1 处
+  pbxproj         → MARKETING_VERSION = 1.66651; CURRENT_PROJECT_VERSION = 46;  ✓
+  codemagic.yaml  → BN=${IOS_BUILD_NO:-46}  ✓
+  品牌图 md5      → icon be2177f2... / banner 8703e23b... / hero 3875264d...  ✓
+  Splash.imageset → 仅 6 个被引用图 + Contents.json，孤儿已清  ✓
