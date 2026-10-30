@@ -1,0 +1,205 @@
+PlayToStar · iOS 工程交付说明（v16 · c51 第3次拒审整改版 · 首帧根治 + 商标显示层脱敏 + 百科去代号）
+==================================================================
+交付包：playtostar_ios_project_1.66651_c51_<时间戳>.zip（见同目录 zip）
+版本：1.66651（MARKETING_VERSION）/ 51（CFBundleVersion）
+      ※ 构建号沿革：42 被 1.666 拒审版占用 → 43 被 1.6665 拒审版占用
+        → 44 跳号预留 → 45 早间推送占用 → 46 由 12:40 那次推送占用
+        → 47 由 13:50 那次推送占用（后发现网页形态产物误进包，作废）
+        → 48 在覆盖解压时被搞乱跳号
+        → 49 已 build 并上传 ASC 后，又发现「非官方第三方工具 / 游戏文档 /
+          游戏内解释」三组措辞 + 百科细项字号过小，故改 50。
+        → 50 已定版出包（v15，2026-10-29 20:31）。此后又完成三项改动，
+          故本轮用 51。
+        ⚠️ 49 / 50 均已上传过 ASC（上传即占用，不可复用）。Apple 只要求递增。
+        同一版本再次重传须设 IOS_BUILD_NO=52+。
+      ※ 与安卓 versionCode 数值相同但语义独立，两者互不影响。
+桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
+前端 bundle：index-Ch2KE9ON.js（3,807,614B，见文末「附：本包实测指纹」）
+构建时间：2026-10-30（Windows 本机 · D:/AIfiles/buddy/ptsappl）
+
+【这是什么】
+Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
+解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
+
+  ios/                       整个目录（版本号 1.66651/51，显示名 PlayToStar）
+  www/                       最新前端——必须更新，cap sync 的数据源
+  codemagic.yaml             构建号默认值已改为 51；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  package.json
+  package-lock.json
+  capacitor.config.json
+  capacitor.config.ts
+  register_local_plugins.py  微信 iOS 插件注册（Codemagic 每次构建都会跑）
+  README_iOS上架完整指南.md（参考）
+  iOS构建说明_FIRST.txt（参考）
+  本说明文件
+
+然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+⚠ 用户习惯是「直接全删重建」而非覆盖解压——可以做，但**别删 .git**。
+   全删重建不需要手动删 sitemap.xml / robots.txt（打包脚本已按
+   SEO_ONLY_NAMES 跳过复制 + 清陈旧，zip 里根本不含这两个文件）。
+
+【v16 / c51 相对 v15 / c50 的全部变化（本轮三笔）】
+
+=== 一、安全模式首帧闪烁根治（🔴 本轮最重要，直接决定审核员看到什么）===
+
+1.1 病根
+  useSafeMode() 的首帧是 useState(cached ?? false)。冷启动时 cached === null
+  （要等 pts-safe-mode.json 网络返回），于是**首帧返回 false**——所有依赖它的
+  门控都有一段「先按 false 渲染、开关到了再切成 true」的窗口。
+  之前只把「整块隐藏热讯/V观点」类门控换成了 useSafeModeState()，但**肖像
+  渲染点仍全用旧 hook**，于是冷启动会**先闪一帧真实卡面再被占位替换**。
+  审核员截屏工具正抓那一帧，就等于门控失效。
+
+1.2 根治手法（不是逐处打补丁，而是收口到唯一入口）
+  use-safe-mode.ts 新增：
+      export function useHideSensitive(): boolean {
+        const { safeMode, resolved } = useSafeModeState();
+        return !resolved || safeMode;
+      }
+  渲染侧只需一个布尔：**开关未确定 → 不画；开关为开 → 不画**。
+  同时 useSafeModeState 的首帧改为 initialSafeState()，新增
+  looksLikeNativeShell()（isNativeApp() ‖ scheme ∈ capacitor:/ionic:/file:
+  ‖ https://localhost），**网页端首帧即 resolved=true**（否则网页端也要先
+  闪一帧占位，反而制造新问题），只有原生壳才进入「未确定」等待态。
+
+1.3 改动清单（14 文件）
+  PlayerCard.tsx、PlayerDetailHeader.tsx（用户点名两处）
+  ＋同源一并修的：TierPlayerCard.tsx、CoachesPage.tsx、CoachDetailPage.tsx、
+    BuildPanel.tsx、CompareRadarChart.tsx、PlayerComparePage.tsx、
+    PlayerCompareSelectPage.tsx、Layout.tsx（hero 横幅＋关于弹窗品牌图）、
+    NewsThumbImage.tsx、PackCardFan.tsx
+  ＋3 个 canvas 导出点（MyTierList / MyLineup / PlayerDetailPage 分享图）
+    ——导出图是 canvas 现画的，页面门控拦不住，故同样 fail-closed
+    （宁可导出无肖像版）。
+
+=== 二、第三方商标「显示层脱敏」（1.14 万球员联赛 + 12 条卡包名）===
+
+2.1 为什么要做
+  上一轮取证把影响面写成「Ligue 1 McDonald's (9人)」「Liga Portugal Betclic
+  (1人)」，**那是错的**——那两个数字是从「某一个筛选条件的返回结果」里数出来
+  的，不是全库统计。本轮改为直接打线上接口全量拉取后重新扫描，真实数字：
+
+    对象                                  抽样命中  抽样总数  占比     全库估算
+    球员 league（13 个冠名联赛）            5,140    20,000   25.7%   ≈11,400
+    球员 teamSeason（<league> <club> 复合） 4,997    20,000   25.0%   ≈11,100
+    卡包名                                    12       144    8.3%       12
+    百科 unreleased_preview 文案             32 处      —       —        —
+
+  其中 Ligue 1 McDonald's 抽样 822（全库≈1830）、Liga Portugal Betclic 抽样
+  325（全库≈720），**不是 9 和 1**。
+
+2.2 为什么不改数据库（用户拍板）
+  数据层改名会让网页 / 安卓 / iOS 三端同时变；历史 URL 参数（?league=...）
+  与用户已保存的筛选条件全部失效；恢复还要反向迁移。而本次要解决的只是
+  「审核员在 iOS 上看到什么」。
+  故采用**安全模式门控的显示层脱敏**：原值原封不动留在库里，只有 safeMode
+  开启时才映射成去品牌化写法；审核通过后把 pts-safe-mode.json 改回 false，
+  10 分钟内全端恢复，**不需要任何数据迁移**。
+
+2.3 实现（新增 utils/safe-display.ts，纯函数、无副作用、可单测）
+  sanitizeLeagueName()  13 条映射 + 前缀兜底；归一化弯引号/直引号
+                        （库里同时存在 McDonald's 与 McDonald’s 两种写法）
+  sanitizeTeamSeason()  按 token（词）数切分而非字符长度——因为 key 做了
+                        引号归一化，字符数未必逐字对齐；只替换前缀的联赛部分，
+                        队名一字不动
+  sanitizePackName()    8 条正则：摘 eFootball™/Trendyol/Betano，
+                        Brasileirão→Brazilian League、
+                        PFA TOTY→Players' Team of the Year、
+                        CAF AFCON→Africa Cup of Nations、Süper Lig→Turkish League
+
+  映射表（13 条）：
+    Ligue 1 McDonald's              → French League
+    Ligue 2 BKT                     → French 2nd Division
+    Brasileirao Betano              → Brazilian League
+    Liga Portugal Betclic           → Portuguese League
+    Trendyol Super Lig              → Turkish League
+    Vriendenloterij Eredivisie      → Dutch League
+    BYD SEALION 6 LEAGUE 1          → Thai League
+    2026/27 MEIJI YASUDA J1 LEAGUE  → J1 League
+    2026/27 MEIJI YASUDA J2 LEAGUE  → J2 League
+    AFC Champions League Elite™     → Asian Champions League Elite
+    AFC Champions League Two™       → Asian Champions League Two
+    AFC Asian Qualifiers™           → Asian Qualifiers
+    CAF AFRICA CUP OF NATIONS 25    → Africa Cup of Nations 2025
+
+  **明确不处理**（保留原样）：
+    · 俱乐部名（FC Barcelona / PSG / Arsenal / Internazionale Milano…）
+    · 真实球员、教练姓名（事实信息）
+    · J1 League / J.LEAGUE 作为联赛名本身（只去掉前面的明治冠名）
+
+2.4 接入点（9 处，全部只改显示，不动筛选/跳转所依赖的原值）
+    pages/packs/PacksPage.tsx                    卡包列表主标题 + 副标题
+    pages/packs/PackDetailPage.tsx               详情页 <h1> 包名
+    pages/player-detail/PlayerPacksDialog.tsx    球员详情「活动卡包」弹窗
+    components/PlayerPoolPanel.tsx               球员池卡包下拉 label
+    pages/player-detail/PlayerDetailHeader.tsx   {league} · {club} 行
+    pages/players/ActiveFilterBadges.tsx         已选筛选项徽章
+
+2.5 卡包名命中清单（12 条，比上一轮说的 9 条多）
+  补上了 5 条 Trendyol + Road to CAF AFCON 2027。完整清单见
+  docs/商标词全量审计_卡包与球员联赛_20261030.md。
+
+=== 三、百科「未上线预览」去内部代号（🔴 服务端数据，须单独部署）===
+
+3.1 问题
+  unreleased_preview 分类里含游戏客户端内部代号：card43 / card68 /
+  SKILL_CARD_MEKONG / SKILL_CARD_CONGO，以及「引擎里预埋的」「引擎增益
+  注册表里已经构造」「两个引擎隐藏槽」「代号重名」等措辞。这些等于在告诉
+  审核员「我们拿到了某款游戏的内部实现」。
+
+3.2 处置（两份 JSON 必须完全一致）
+  card43 / card68                       删除
+  SKILL_CARD_MEKONG                     → 隐藏槽 1 · 传球类
+  SKILL_CARD_CONGO                      → 隐藏槽 2 · 防守类
+  引擎里预埋的 Show Time 原型           → 尚未实装的 Show Time 原型技能
+  引擎增益注册表里已经构造              → 尚未实装的隐藏技能槽
+  两个引擎隐藏槽                        → 两个隐藏技能槽
+  代号重名                              → 同名
+
+  两份各改 32 处，md5 一致 a6c730382ea8cea08889b58dcb3e5654。
+  card\d+ / SKILL_CARD_ / 预埋 / 注册表 / 代号 全部归零。
+  残留 1 处「引擎」属「裁判引擎算法」（游戏机制描述，非内部代号，保留合理）。
+
+3.3 ⚠️ 前端包救不了这一项
+  百科正文走远端热更新：encyclopedia-store.ts 启动时拉
+  GET /api/encyclopedia/bundle 整包覆盖。**服务端数据不随前端包走**，
+  不部署服务端则线上仍返回旧文案。参见 STATE.md「三、进行中/待办」第一行。
+
+【验证记录（本轮实测）】
+
+· tsc：26 个错误与基线完全一致；7 个改动文件零新增错
+· vite build：APP 形态构建通过，产物 index-Ch2KE9ON.js（3,807,614B）
+  title = <title>PlayToStar</title>，polyfills 走 ./assets/ 相对路径
+· 产物内 13 条映射串全部入包（逐条 grep 计数已核）
+  ligue 1 mcdonald=1 / French League=1 / French 2nd Division=1 /
+  Brazilian League=2 / Portuguese League=1 / Turkish League=2 /
+  Dutch League=1 / Thai League=1 / J1 League=1 /
+  Asian Champions League Elite=1 / Africa Cup of Nations 2025=1 /
+  afc asian qualifiers=1 / vriendenloterij=1 / byd sealion=1 / meiji yasuda=2
+· 产物内 capacitor: 判定已编译（首帧修复的 looksLikeNativeShell 生效）
+· 产物内 card43 / SKILL_CARD_MEKONG / SKILL_CARD_CONGO 均为 0
+· 端到端脱敏验证（用线上 144 条真实卡包 + 20000 条球员抽样）：
+    - 脱敏后仍含商标/赞助商的卡包 = 0
+    - 8 个不该动的（English League / Italian League / European Cup /
+      Brasileirao / 空值 / 无俱乐部 / Brazilian 2nd Division）全部原样保留
+    - 11 个 teamSeason 复合串队名零损伤
+    - 17 个卡包名（含应保留的 J.LEAGUE Monthly MVPs / BG Pathum United FC /
+      Internazionale Milano Pack / 巴甲联赛精选）全部符合预期
+
+【提审前 checklist（本轮追加项）】
+
+□ 解压本包 → 覆盖/重建 D:/github/playtostar/playtostarforios（别删 .git）
+□ push GitHub → Codemagic iOS Release 点 Start new build（构建号会读 51）
+□ ASC 建 1.66651 (51)
+□ 🔴 确认 https://playtostar.com/download/pts-safe-mode.json = {"safeMode": true}
+□ 🔴 部署百科服务端数据（否则第 3.1 条的修复不生效）
+      验证：curl https://playtostar.com/api/encyclopedia/bundle
+            游戏文档=0 && Konami=0 && 基础说明>0
+            且 unreleased_preview 无 card43 / SKILL_CARD_MEKONG
+□ 用 c51 装好后重截 10 张截图 + 补 iPad 尺寸一组（必须，否则无法提交审核）
+□ 截图不得含 eFootball / 实况足球 / KONAMI / 巨大 e 字母 / .com
+□ Resolution Center 按 docs/AppStore第3次拒审回复邮件_20261029.md 回复
+      （邮件里构建号 49 需改成 51）
+
+【附：本包实测指纹】
+（由打包脚本在文末追加，每轮重建哈希必变，以包内文件为准）
