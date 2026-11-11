@@ -121,16 +121,17 @@ workflows:
       #   52 c52（已 build 并上传，仍被 4.1(a) Copycats 拒），
       #   53 c53（已上传 ASC，2026-11-10 被第 4 次拒审：
       #      4.2.3(i) + 2.1(a) + 4.2，根因 = iPad 上 Apple 登录弹不出），
-      #   故本轮用 54（含 Apple 登录 iPad 修复补丁）。
+      #   54 为含 Apple 登录 iPad 修复补丁的中间包（未正式上传，预留不复用），
+      #   故本轮 v05 用 55（d383811 账号密码登录 + iPad Apple 补丁 + 远程 safeMode）。
       #   Apple 只要求递增、不允许复用，跳号无副作用。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=55、56…（逐次 +1），无需重新打包。
+      #   IOS_BUILD_NO=56、57…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-54}
+          BN=${IOS_BUILD_NO:-55}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 54；53 及以下均已被占用，下次重传设 55+）"
+          echo "本次 CFBundleVersion = $BN（默认 55；54 及以下均已被占用/预留，下次重传设 56+）"
 
       - name: Build IPA
         script: |
