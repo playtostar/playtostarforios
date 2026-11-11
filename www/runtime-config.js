@@ -9,4 +9,8 @@ window.RUNTIME_CONFIG = {
   WECHAT_MINI_APPID: '',
   // 网页 Sign in with Apple 的 Services ID（Apple Developer 后台注册；留空则网页不显示 Apple 登录按钮）
   APPLE_WEB_CLIENT_ID: 'com.playtostar.web',
+  // 网页端第三方社交分享平台 App Key（仅浏览器环境使用，原生 App 内不使用该值）
+  //   留空：分享入口照常可用，来源显示为该平台默认值；
+  //   填入：平台审核通过后把 Key 粘到这里即生效，无需重新构建前端。
+  WEB_SHARE_APP_KEY: '',
 };
