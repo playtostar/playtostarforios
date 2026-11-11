@@ -28,6 +28,17 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
 
+      # ★ App Store 第 4 次拒审整改（2026-11-10，Submission 538ddac8）：
+      #   2.1(a)「无法使用 Sign in with Apple」的根因是审核设备 iPad Air 11-inch (M3) 上，
+      #   社区插件 @capacitor-community/apple-sign-in 的 ASAuthorizationController
+      #   ① 没设 presentationContextProvider（iPad 必须有锚点才能弹出授权 sheet，
+      #      缺失即报 AuthorizationError 1000；iPhone 会回退到 key window 所以本地测不出）
+      #   ② performRequests() 未在主线程驱动
+      #   → 三处补丁由本脚本施加（幂等、锚点缺失即失败退出，绝不静默放过）。
+      #   详细诊断见 ptsappl/docs/AppStore第4次拒审诊断与整改手册_20261110.md
+      - name: Patch Apple Sign-In plugin (iPad presentation anchor)
+        script: python3 "$CM_BUILD_DIR/patch_apple_signin.py"
+
       # web 产物来源（自适应两种仓库布局）：
       #  A) 独立 iOS 出包仓库（如 github.com/playtostar/playtostarforios，仓库根
       #     即 mobile 内容、已带预构建 www、无 app/ 源码）：直接使用仓库里的 www；
@@ -101,23 +112,25 @@ workflows:
       # CFBundleVersion（构建号）每次上传都必须高于 ASC 上已有的最高值，否则发布报
       # “attribute ... already been used / bundle version must be higher”。
       # Codemagic 自己的 BUILD_NUMBER 目前只有十几、不能直接用；这里：
-      #   默认 50（2026-10-29 起：42/43 被 1.666、1.6665 两次拒审占用，44 跳过，
+      #   42/43 被 1.666、1.6665 两次拒审占用，44 跳过，
       #   45 早间推送占用，46 由 12:40 那次推送占用，47 由 13:50 那次推送占用，
       #   48 在用户本机覆盖解压时被搞乱跳号，
       #   49 已 build 并上传后才发现「网页形态产物误进包」+ 文案/字号问题，
       #   50 c50（已上传，仍报 J.LEAGUE / 游戏文档），
       #   51 c51（已 build 并推送，但首页「最新活动包」区块漏接脱敏 + 百科未部署），
       #   52 c52（已 build 并上传，仍被 4.1(a) Copycats 拒），
-      #   故本轮用 53）。
+      #   53 c53（已上传 ASC，2026-11-10 被第 4 次拒审：
+      #      4.2.3(i) + 2.1(a) + 4.2，根因 = iPad 上 Apple 登录弹不出），
+      #   故本轮用 54（含 Apple 登录 iPad 修复补丁）。
       #   Apple 只要求递增、不允许复用，跳号无副作用。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=54、55…（逐次 +1），无需重新打包。
+      #   IOS_BUILD_NO=55、56…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-53}
+          BN=${IOS_BUILD_NO:-54}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 53；52 及以下均已被占用，下次重传设 54+）"
+          echo "本次 CFBundleVersion = $BN（默认 54；53 及以下均已被占用，下次重传设 55+）"
 
       - name: Build IPA
         script: |
