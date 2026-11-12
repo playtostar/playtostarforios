@@ -126,15 +126,16 @@ workflows:
       #   56 为 v06（内容同 v05，仅递增构建号），
       #   故本轮 v07 用 57（底部导航 + 邮箱验证码 OTP，替换账号密码登录）。
       #   v08 用 58（8 Tab 底部导航重构：首页凸起居中、登录并入我的、原创 banner 常驻）。
+      #   v09 用 59（教练并入百科弹梯子、状态栏下移、删更新按钮、SignInWithApple 修复、菜单全并入我的）。
       #   Apple 只要求递增、不允许复用，跳号无副作用。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
-      #   IOS_BUILD_NO=58、59…（逐次 +1），无需重新打包。
+      #   IOS_BUILD_NO=59、60…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-58}
+          BN=${IOS_BUILD_NO:-59}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 58；57 及以下均已被占用/预留，下次重传设 59+）"
+          echo "本次 CFBundleVersion = $BN（默认 59；58 及以下均已被占用/预留，下次重传设 60+）"
 
       - name: Build IPA
         script: |
