@@ -32,8 +32,6 @@
 	</array>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>用于将球员卡、阵容与分享图保存到您的相册。</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>用于选取并分享图片。</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

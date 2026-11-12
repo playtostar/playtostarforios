@@ -16,7 +16,8 @@ public class WechatAuthPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "WechatAuthPlugin"
     public let jsName = "WechatAuth"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "login", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "login", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "isInstalled", returnType: CAPPluginReturnPromise)
     ]
 
     private static let appId = "wxd0ef5d487ac33750"
@@ -53,6 +54,11 @@ public class WechatAuthPlugin: CAPPlugin, CAPBridgedPlugin {
                 self?.savedCall = nil
             }
         }
+    }
+
+    @objc public func isInstalled(_ call: CAPPluginCall) {
+        // 供前端在 iOS 未装微信时隐藏微信入口，避免出现强制安装第三方 App 的路径（4.2.3(i)）
+        call.resolve(["installed": WXApi.isWXAppInstalled()])
     }
 
     /// Capacitor 以 object 字典（["url": URL]）形式 post，兼容 userInfo / 直接 URL。

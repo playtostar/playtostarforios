@@ -18,7 +18,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TARGET = os.path.join(HERE, 'ios', 'App', 'App', 'capacitor.config.json')
 
 # 本地（非 npm）原生插件的 Objective-C 运行时类名
-LOCAL_PLUGIN_CLASSES = ['WechatAuthPlugin']
+# WechatAuthPlugin：微信登录（含 isInstalled 探测）
+# PhotoSaverPlugin：图片直接写入系统相册（PHPhotoLibrary addOnly）
+# ExternalBrowserPlugin：用系统外部浏览器打开 http/https 链接
+LOCAL_PLUGIN_CLASSES = ['WechatAuthPlugin', 'PhotoSaverPlugin', 'ExternalBrowserPlugin']
 
 if not os.path.exists(TARGET):
     sys.exit('未找到 %s，请先运行：npx cap sync ios' % TARGET)
