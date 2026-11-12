@@ -1,0 +1,17 @@
+{
+  "appId": "com.playtostar.app",
+  "appName": "PlayToStar",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "scrollEnabled": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "overlaysWebView": true
+    }
+  }
+}
