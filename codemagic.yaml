@@ -135,7 +135,7 @@ workflows:
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-63}
+          BN=${IOS_BUILD_NO:-64}
           agvtool new-version -all "$BN"
           echo "本次 CFBundleVersion = $BN（默认 61；60 及以下均已被占用/预留，下次重传设 62+）"
 
