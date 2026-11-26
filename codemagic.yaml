@@ -113,16 +113,18 @@ workflows:
       #   54~63 为后续重传/迭代占用，
       #   64 c64（2026-11-25 第 5 次拒审：v09 错误回退第三方致 iPad Apple 登录不可用，
       #   已切回自研 AppleAuth 修复），
-      #   故本轮重传用 65）。
+      #   65 c65（2026-11-26 已上传：自研 AppleAuth + anchor 兜底 + 错误码透传），
+      #   66 c66（2026-11-26 新增：后端 Apple 验签网络层失败自动重试，针对审核截图 "Load failed"），
+      #   故本轮重传用 66）。
       #   Apple 只要求递增、不允许复用，跳号无副作用。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
       #   IOS_BUILD_NO=55、56…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-65}
+          BN=${IOS_BUILD_NO:-66}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 65；64 及以下均已被占用，下次重传设 66+）"
+          echo "本次 CFBundleVersion = $BN（默认 66；65 及以下均已被占用，下次重传设 67+）"
 
       - name: Build IPA
         script: |
