@@ -1,0 +1,71 @@
+PlayToStar · iOS 工程交付说明（v11 · c67 · 版本号对齐正常版）
+==================================================================
+交付包：playtostar_ios_project_1.66890_c67_<时间戳>.zip（见同目录 zip）
+版本：1.66890（MARKETING_VERSION）/ 67（CFBundleVersion）
+      ※ 构建号沿革：iOS 已占用至 66（c66 为 Apple 验签网络层失败自动重试）。
+        本包 build 67，与安卓 versionCode 67 / versionName 1.66890 对齐，
+        三端版本号统一为正常发版口径。同一版本再次重传须设 IOS_BUILD_NO=68+。
+桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
+前端 bundle：index-EUIRMbqd.js（3,857.92 kB）
+构建时间：2026-11-26（云端 Linux · APP 形态 VITE_BASE=./ VITE_SAFE_MODE=1）
+
+【这是什么】
+Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
+解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
+
+  ios/                       整个目录（版本号已改为 1.66890/67，显示名 PlayToStar）
+  www/                       最新前端——必须更新，cap sync 的数据源
+  codemagic.yaml             构建号默认值已改为 67；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  package.json
+  package-lock.json
+  capacitor.config.json
+  capacitor.config.ts
+  register_local_plugins.py  本地自研插件注册（Codemagic 每次构建都会跑）
+  README_iOS上架完整指南.md（参考）
+  iOS构建说明_FIRST.txt（参考）
+  本说明文件
+
+然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+
+【本次相对上一版（1.6682/build66）的全部变化】
+=== 一、safe 模式补全两个新榜单卡面（合规漏点修复）===
+「榜单-国服上架计时」「榜单-国际服未上架」两个新模块的卡面此前未接入
+safe 模式门控，审核期会显示真实卡面。已在 ReturnTimerContent.tsx 接入
+useHideSensitive()：hideSensitive 时用等尺寸 3:4 竖框 + 居中首字占位替换
+真实卡面，外层点击跳转与 OVR 角标保留，与标准 PlayerCard 门控一致。
+
+=== 二、球员详情闪耀提示字体放大两档 ===
+BuildPanel.tsx 中「已智能匹配，左右滑动切换新老闪耀」提示
+由 text-xs 改为 text-base（xs → sm → base，正好两档），提升移动端可读性。
+
+=== 三、设置入口恢复（可发现性修复）===
+原竖屏设置入口仅藏在顶部头像下拉菜单，用户难以发现。已在个人中心页
+（ProfilePage）新增显式快捷入口卡片：通知 / 设置 / 关于，原生 APP 均显示，
+字号图标同步放大。点「设置」可进入：浅色/深色皮肤、屏幕方向、语言、
+用户协议、黑名单管理、账号绑定、注销账号等全部原有功能。
+
+=== 四、版本号对齐 ===
+pbxproj 两处 CURRENT_PROJECT_VERSION 66→67、MARKETING_VERSION 1.6682→1.66890；
+codemagic.yaml 默认 IOS_BUILD_NO 67；前端 APP_VERSION（ProfilePage/Layout）
+同步 V1.66890。
+
+【iOS 合规要点（用户协议 / 黑名单）】
+- 用户协议/隐私政策：所有 App 硬性要求（App Store 审核指南 5.1.1(i)），
+  须在 App Store Connect 元数据与 App 内部提供可轻松访问的隐私政策链接。
+- 黑名单/拉黑：本 App 含讨论区等用户生成内容，适用审核指南 1.2，
+  须具备过滤不良内容、举报机制、封禁违规用户（block abusive users）能力。
+上述功能均已在设置页内实现，本次仅修复入口可发现性，无功能缺失。
+
+【安全模式（远程静态文件开关）】
+本包为【普通版】前端 +【服务器静态文件远程开关】。
+  1. 构建参数 VITE_SAFE_MODE=1 已开启，构建期即收口敏感渲染；
+  2. 静态文件 https://playtostar.com/download/pts-safe-mode.json
+     （内容 {"safeMode": true|false}），仅 iOS 原生壳读取；
+  3. useHideSensitive 为 fail-closed：未确定时先隐藏，绝不先画一帧真内容。
+审核通过后把开关改为 {"safeMode": false}，最长 10 分钟全端恢复，无需发版。
+
+【本包 www 构建参数（照抄，勿改）】
+  NODE_ENV=production VITE_BASE=./ VITE_ENABLE_I18N=1 VITE_SAFE_MODE=1 \
+  vite build --config vite.config.ts --emptyOutDir
+  ※ 不要打包 ios/App/App/public/（cap sync 本地产物，已排除）。
+  ※ 已剔除全部 *.map、sitemap.xml、robots.txt，无明文源码与 SEO 路径。
