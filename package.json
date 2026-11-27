@@ -2,7 +2,7 @@
   "name": "playtostar-mobile",
   "version": "0.3.0",
   "private": true,
-  "description": "PlayToStar mobile client (Capacitor shell for iOS/Android)",
+  "description": "实况起点数据中心 Android（Capacitor 封装）",
   "scripts": {
     "sync": "cap sync android",
     "sync:ios": "cap sync ios",
