@@ -1,0 +1,76 @@
+PlayToStar · iOS 工程交付说明（v12 · c68 · 基于安卓 68 版重建）
+==================================================================
+交付包：playtostar_ios_project_1.66891_c68_<时间戳>.zip（见同目录 zip）
+版本：1.66891（MARKETING_VERSION）/ 68（CFBundleVersion）
+      ※ 构建号沿革：iOS 已占用至 67（c67 为 safe 卡面门控补全 + 设置入口恢复）。
+        本包 build 68，与安卓 versionCode 68 / versionName 1.66891 对齐，
+        三端版本号统一为正常发版口径。同一版本再次重传须设 IOS_BUILD_NO=69+。
+桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
+前端 bundle：index-l2-ZQQnQ.js（3,912.69 kB）
+构建时间：2026-11-27（云端 Linux · APP 形态 VITE_BASE=./ VITE_SAFE_MODE=1）
+
+【这是什么】
+Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
+解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
+
+  ios/                       整个目录（版本号已改为 1.66891/68，显示名 PlayToStar）
+  www/                       最新前端——必须更新，cap sync 的数据源
+  codemagic.yaml             构建号默认值已改为 68；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  package.json
+  package-lock.json
+  capacitor.config.json
+  capacitor.config.ts
+  register_local_plugins.py  本地自研插件注册（Codemagic 每次构建都会跑）
+  README_iOS上架完整指南.md（参考）
+  iOS构建说明_FIRST.txt（参考）
+  本说明文件
+
+然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+
+【本次相对上一版（1.66890/build67）的全部变化】
+=== 一、天梯新模块卡面全量接入 SAFE 门控（核心合规漏点）===
+国服天梯（ladder）为 68 版新功能，原目录无任何安全门控引用，审核期会直接
+渲染真实球员卡面。已在三处卡面出口全部收口，安全模式下数据/指标/交互照常：
+  1. LadderFace（HTML <img>，天梯唯一卡面渲染出口）：接入 useHideSensitive，
+     hideSensitive 时不加载 COS/签名 URL，改为等尺寸首字占位；一处门控同时
+     覆盖球员列表（LadderPlayerModule）与强度矩阵（LadderScatter）。
+  2. LadderPitch 的 SlotFace（SVG <image>，高分阵容弹窗球场）：接入
+     useHideSensitive，hideSensitive 时不渲染 SVG image，改走号码占位。
+  3. renderLadderShareCanvas（天梯分享图 canvas 导出）：新增 safeMode 参数，
+     安全模式下不发起任何真实卡面网络请求，左侧前十与矩阵卡面统一首字占位；
+     LadderRankContent 调用时传入 useHideSensitive 结果。
+
+=== 二、论坛统一关注 FeedItemCard 封面门控 ===
+news/vip 类型卡片右侧封面缩略图原无门控，与已门控的 NewsThumbImage 策略
+不一致。已接入 useHideSensitive，安全模式下隐藏第三方封面，文字/作者行保留。
+
+=== 三、公告富文本/纯文本图片门控（纵深防御）===
+  1. LinkedText（通知页、远程公告弹窗）：接入 useHideSensitive，安全模式下
+     markdown 图片标记不加载外部图，仅保留说明文字，文字链接功能不受影响。
+  2. RichTextContent（远程公告 HTML）：接入 useHideSensitive，安全模式下
+     DOMPurify 额外禁止 img 标签，文字与链接保留。
+
+=== 四、版本号对齐 ===
+pbxproj 两处 CURRENT_PROJECT_VERSION 67→68、MARKETING_VERSION 1.66890→1.66891；
+codemagic.yaml 默认 IOS_BUILD_NO 67→68。
+
+【Apple 登录防回归（历史第 4/5 次拒审教训）】
+前端 AuthPage 仍用自研原生插件 registerPlugin('AppleAuth')（含
+presentationContextProvider，修复 iPad 授权表无锚点无法弹出），严禁回退第三方
+@capacitor-community/apple-sign-in。cap sync 后已跑 register_local_plugins.py，
+packageClassList 确认含 AppleAuthPlugin、WechatAuthPlugin、
+ExternalBrowserPlugin、PhotoSaverPlugin 四个自研本地插件。
+
+【安全模式（构建期恒开 + 远程静态文件开关）】
+  1. 构建参数 VITE_SAFE_MODE=1 已开启，构建期即 BUILD_FLAG 恒真、收口敏感渲染，
+     零网络依赖、fail-closed，优先级最高；
+  2. 静态文件 https://playtostar.com/download/pts-safe-mode.json
+     （内容 {"safeMode": true|false}），仅 iOS 原生壳读取；
+  3. useHideSensitive 为 fail-closed：未确定时先隐藏，绝不先画一帧真内容。
+审核通过后把开关改为 {"safeMode": false}，最长 10 分钟全端恢复，无需发版。
+
+【本包 www 构建参数（照抄，勿改）】
+  NODE_ENV=production VITE_BASE=./ VITE_ENABLE_I18N=1 VITE_SAFE_MODE=1 \
+  vite build --config vite.config.ts --emptyOutDir
+  ※ 不要打包 ios/App/App/public/（cap sync 本地产物，已排除）。
+  ※ 已剔除全部 *.map、sitemap.xml、robots.txt，无明文源码与 SEO 路径。

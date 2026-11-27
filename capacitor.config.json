@@ -1,6 +1,6 @@
 {
   "appId": "com.playtostar.app",
-  "appName": "实况起点",
+  "appName": "PlayToStar",
   "webDir": "www",
   "android": {
     "allowMixedContent": false
