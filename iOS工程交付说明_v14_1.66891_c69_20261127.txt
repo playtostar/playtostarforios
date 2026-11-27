@@ -1,0 +1,72 @@
+PlayToStar · iOS 工程交付说明（v14 · c69 · 针对 2.1(a) 登录拒审 + 实测修复）
+==================================================================
+交付包：playtostar_ios_project_1.66891_c69_<时间戳>.zip（见同目录 zip）
+版本：1.66891（MARKETING_VERSION）/ 69（CFBundleVersion）
+      ※ c68 已上传 App Store Connect，Apple 要求构建号单调递增、不可复用，
+        故本包 build 68→69（pbxproj 两处 + codemagic 默认同步），版本名保持 1.66891。
+桌面显示名：PlayToStar（Info.plist CFBundleDisplayName / capacitor appName）
+前端 bundle：index-BwDUk8Fd.js（3,822.46 kB）
+构建时间：2026-11-27（云端 Linux · APP 形态 VITE_BASE=./ VITE_SAFE_MODE=1）
+
+【这是什么】
+Capacitor iOS 工程 + 最新前端资源。zip 根目录 = Codemagic 仓库根。
+解压后把下列内容复制进 playtostarforios（仓库根，覆盖旧文件）：
+
+  ios/                       整个目录（版本号 1.66891/69，显示名 PlayToStar）
+  www/                       最新前端——必须更新，cap sync 的数据源
+  codemagic.yaml             构建号默认值 69；ASC 集成名 = CODEMAGICPLAYTOSTAR
+  package.json / package-lock.json
+  capacitor.config.json / capacitor.config.ts
+  register_local_plugins.py  本地自研插件注册（Codemagic 每次构建都会跑）
+  README_iOS上架完整指南.md / iOS构建说明_FIRST.txt（参考）
+  本说明文件
+
+然后 commit + push 到 GitHub，Codemagic 自动构建并上传 App Store Connect。
+
+【本次针对 1.666(64) 两条 2.1(a) 拒审的核心整改】
+=== 一、2.1(a) Information Needed：登录页新增「游客浏览」演示模式 ===
+原登录页只有 Apple / 微信 / 邮箱三条登录路径，审核员一旦登录失败即被完全卡死，
+无法进入 app 验证功能。已在登录页快捷登录区底部新增「游客浏览，先看看」按钮，
+点击直接进入首页，无需任何账号——对应 Apple 反馈明确接受的 demonstration mode：
+  · 核心浏览功能游客全部可用：球员数据查询、国服天梯榜、加点模拟、百科、
+    论坛/资讯浏览、球员对比等；
+  · 账户数据类操作（收藏/我的阵容/我的强度榜/发帖等）走 visitor-mode 本机
+    localStorage 保存（VISITOR_MODE_ENABLED=true，与云端数据隔离），需要云端
+    同步时再引导登录，不阻断浏览。
+  路由层本就无全局强制登录守卫，本次补齐登录页入口，审核员任意路径都能进入。
+
+=== 二、2.1(a) App Completeness：Sign in with Apple 登录 "Load failed" 修复 ===
+审核截图红色错误条 "Load failed" 是 WKWebView 里 JS fetch 网络层失败的原生
+TypeError 文案（审核设备到 playtostar.com 的后端验签请求在网络层失败，无 HTTP
+响应），非 Apple 授权表/凭证问题。两层修复保持就位：
+  1. 前端必须走自研 AppleAuth 插件（registerPlugin('AppleAuth')，含
+     presentationContextProvider 提供 iPad 多窗口锚点，授权表可正常弹出），
+     严禁回退第三方 @capacitor-community/apple-sign-in（该插件缺锚点 iPad 不可用）；
+     AppleAuthPlugin.swift 已补 anchor 三级兜底与错误码透传（APPLE_AUTH_<domain>_<code>）。
+  2. appleLoginWithRetry()：仅对网络层失败（TypeError / "Load failed"，无响应）
+     自动重试 1 次、退避 600ms，后端明确 4xx/5xx 业务错误不重试，规避一次
+     瞬时网络抖动即被拒。
+  cap sync 后已跑 register_local_plugins.py，packageClassList 确认含
+  AppleAuthPlugin、WechatAuthPlugin、ExternalBrowserPlugin、PhotoSaverPlugin。
+
+【c68 实测三个问题的修复（一并在本包）】
+  1. 设置页补「退出登录」：useAuth 增 logout，注销账号区块上方新增青色退出登录
+     卡片（带确认，仅清登录态、数据保留，与红色不可恢复的注销区分）；
+  2. 天梯球员三指标字体缩小 2 档（1 档=2px，仅竖版）：标签 20→18px、数值 22→20px；
+  3. 修复天梯点分享失败：内层 LadderRankInner 引用了外层组件未传入的 hideSensitive
+     自由变量，运行即抛 ReferenceError；已在内层自行 useHideSensitive() 取局部变量。
+
+【安全模式（构建期恒开 + 远程静态文件开关）】
+  1. VITE_SAFE_MODE=1 已开启，构建期 BUILD_FLAG 恒真（bundle 内 buildFlagOn 已被
+     静态求值为 return true），所有真实卡面 fail-closed 100% 不显示，零网络依赖；
+  2. 远程开关 https://playtostar.com/download/pts-safe-mode.json 仅 iOS 壳读取，
+     useHideSensitive 未确定时先隐藏，绝不先闪一帧真内容；
+  3. 本次所有改动均未破坏卡面门控（天梯 LadderFace / LadderPitch / 分享图三处
+     门控保持闭合），无 konami / eFootball / 实况足球 / 实况起点 商标词。
+审核通过后把开关改为 {"safeMode": false}，最长 10 分钟全端恢复，无需发版。
+
+【本包 www 构建参数（照抄，勿改）】
+  NODE_ENV=production VITE_BASE=./ VITE_ENABLE_I18N=1 VITE_SAFE_MODE=1 \
+  vite build --config vite.config.ts --emptyOutDir
+  ※ 不打包 ios/App/App/public/（cap sync 本地产物，已排除）；已剔除全部
+     *.map、sitemap.xml、robots.txt，无明文源码与 SEO 路径。

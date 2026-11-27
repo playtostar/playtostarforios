@@ -117,18 +117,20 @@ workflows:
       #   66 c66（2026-11-26 新增：后端 Apple 验签网络层失败自动重试，针对审核截图 "Load failed"），
       #   67 c67（2026-11-26：safe 卡面门控补全 + 闪耀提示字体放大 + 设置入口恢复，
       #   MARKETING_VERSION 同步 1.66890），
-      #   68 c68（2026-11-27 本轮：基于安卓 68/1.66891 重建，天梯 LadderFace/SVG image/
+      #   68 c68（2026-11-27：基于安卓 68/1.66891 重建，天梯 LadderFace/SVG image/
       #   分享图全部补 SAFE 门控 + 论坛/公告富文本图片门控，MARKETING_VERSION 同步 1.66891），
-      #   故本轮重传用 68）。
+      #   69 c69（2026-11-27 本轮：c68 已上传 ASC 故递增；登录页新增「游客浏览」演示模式
+      #   解决 2.1(a) Information Needed，设置页退出登录/天梯字体/分享 ReferenceError 修复，
+      #   MARKETING_VERSION 保持 1.66891），故本轮重传用 69）。
       #   Apple 只要求递增、不允许复用，跳号无副作用。
       #   以后同一个版本每次重传，在 Start new build 的变量里设
       #   IOS_BUILD_NO=55、56…（逐次 +1），无需重新打包。
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          BN=${IOS_BUILD_NO:-68}
+          BN=${IOS_BUILD_NO:-69}
           agvtool new-version -all "$BN"
-          echo "本次 CFBundleVersion = $BN（默认 68；67 及以下均已被占用，下次重传设 69+）"
+          echo "本次 CFBundleVersion = $BN（默认 69；68 及以下均已被占用，下次重传设 70+）"
 
       - name: Build IPA
         script: |
